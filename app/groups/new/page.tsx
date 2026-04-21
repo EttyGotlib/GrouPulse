@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
-
+import { createNewGroup } from '../../../lib/api';
 export default function NewGroupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -46,44 +46,31 @@ export default function NewGroupPage() {
   const handleCreateGroup = async () => {
     if (!groupName) return alert('אנא הכניסי שם לקבוצה');
     setLoading(true);
-
+  
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      const { data: groupData, error: groupError } = await supabase
-        .from('groups')
-        .insert([{ 
-          name: groupName, 
-          type: groupType, 
-          sessions_planned: sessionCount,
-          user_id: user?.id,
-          participants_count: participants.length
-        }])
-        .select()
-        .single();
-
-      if (groupError) throw groupError;
-
-      if (participants.length > 0) {
-        const toInsert = participants.map(p => ({
-          full_name: p.fullName,
-          id_number: p.idNumber,
-          email: p.email,
-          group_id: groupData.id
-        }));
-        await supabase.from('participants').insert(toInsert);
+      // כאן אנחנו קוראים לפונקציה שכתבת ב-api.js
+      // אנחנו שולחים לה אובייקט עם נתוני הקבוצה, ואת רשימת המשתתפים
+      const result = await createNewGroup(
+        { name: groupName, type: groupType },
+        participants
+      );
+  
+      if (result.success) {
+        // אם השמירה הצליחה - מנקים את הזיכרון המקומי
+        localStorage.removeItem('temp_participants');
+        localStorage.removeItem('temp_group_name');
+        localStorage.removeItem('temp_group_type');
+        localStorage.removeItem('temp_session_count');
+  
+        alert('הקבוצה נוצרה בהצלחה!');
+        router.push('/dashboard'); // מעבר לדף הבית
+      } else {
+        // אם הייתה שגיאה ב-API (למשל בעיית תקשורת), נציג אותה
+        alert('שגיאה ביצירת הקבוצה: ' + result.error);
       }
-      
-      localStorage.removeItem('temp_participants');
-      localStorage.removeItem('temp_group_name');
-      localStorage.removeItem('temp_group_type');
-      localStorage.removeItem('temp_session_count');
-
-      alert('הקבוצה נוצרה בהצלחה!');
-      router.push('/dashboard');
     } catch (error) {
       console.error('Error:', error);
-      alert('שגיאה ביצירת הקבוצה');
+      alert('שגיאה לא צפויה במערכת');
     } finally {
       setLoading(false);
     }
