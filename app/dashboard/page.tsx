@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
+import { getDashboardData } from '../../lib/api';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -19,34 +20,25 @@ export default function DashboardPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      
+      const { groups, stats } = await getDashboardData();
+      
+      setGroups(groups);
+      setStats(stats);
+
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) setUserName(user.user_metadata?.full_name || 'ד"ר לוי');
+      if (user) setUserName(user.user_metadata?.full_name || 'מטפל/ת');
 
-      const { data: groupsData } = await supabase.from('groups').select('*');
-
-      if (groupsData) {
-        setGroups(groupsData);
-        setStats({
-          activeGroups: groupsData.length,
-          totalParticipants: groupsData.reduce((sum, g) => sum + (g.participants_count || 0), 0),
-          weeklyMeetings: 0, 
-          missingNotes: 0
-        });
-      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
     setLoading(false);
   };
-
+  
   useEffect(() => {
     fetchData();
   }, []);
-
-  if (loading) {
-    return <div className="flex h-screen items-center justify-center font-bold text-[#003643]">טוען את GrouPulse...</div>;
-  }
-
+  
   return (
     <div style={{ backgroundColor: '#f7f9fe', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif' }}>
       {/* Container ראשי רחב למחשב */}
