@@ -2,9 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
-/* זה ימנע מהדף "לקפוץ" לצדדים */
+:root {
+  --background: #f7f9fe;
+  --primary: #003643;
+}
+
 body {
+  background-color: var(--background);
+  color: #181c1f;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* הגדרה גלובלית לאייקונים */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  display: inline-block;
+  vertical-align: middle;
 }
