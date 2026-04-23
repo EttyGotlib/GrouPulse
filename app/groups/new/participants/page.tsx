@@ -12,36 +12,31 @@ export default function AddParticipantPage() {
   const [fullName, setFullName] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState(''); // הוספנו סטייט לטלפון
+  const [phone, setPhone] = useState(''); 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setFileName(file.name);
   };
 
-  // פונקציית בדיקת התקינות
   const validateForm = () => {
-    // 1. בדיקת שם מלא (לפחות 2 מילים)
     if (fullName.trim().split(' ').length < 2) {
       alert('נא להזין שם מלא (שם פרטי ומשפחה)');
       return false;
     }
 
-    // 2. בדיקת תעודת זהות (בדיוק 9 ספרות)
     const idRegex = /^\d{9}$/;
     if (!idRegex.test(idNumber)) {
       alert('תעודת זהות חייבת להכיל בדיוק 9 ספרות');
       return false;
     }
 
-    // 3. בדיקת אימייל
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       alert('כתובת האימייל אינה תקינה');
       return false;
     }
 
-    // 4. בדיקת טלפון (פורמט ישראלי נייד)
     const phoneRegex = /^05\d-?\d{7}$/;
     if (!phoneRegex.test(phone)) {
       alert('מספר הטלפון חייב להיות בפורמט תקין (למשל 0501234567)');
@@ -52,10 +47,8 @@ export default function AddParticipantPage() {
   };
 
   const handleAddParticipant = () => {
-    // הרצת הבדיקות
     if (!validateForm()) return;
 
-    // אם עברנו את הבדיקות - שומרים
     const existing = JSON.parse(localStorage.getItem('temp_participants') || '[]');
     const updated = [...existing, { fullName, idNumber, email, phone }];
     localStorage.setItem('temp_participants', JSON.stringify(updated));
@@ -64,7 +57,8 @@ export default function AddParticipantPage() {
   };
 
   return (
-    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif' }}>
+    // השינוי כאן: הוספנו paddingBottom כדי שהסרגל הגלובלי לא יסתיר את הכפתורים
+    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '140px' }}>
       
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', backgroundColor: 'white' }}>
         <span className="material-symbols-outlined" style={{ color: '#003643' }}>more_vert</span>

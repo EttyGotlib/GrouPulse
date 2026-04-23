@@ -8,7 +8,7 @@ export default function GroupDetailsPage() {
   const { id } = useParams();
 
   return (
-    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '100px' }}>
+    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '120px' }}>
       
       {/* 1. Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', backgroundColor: 'white', borderBottom: '1px solid #eee' }}>
@@ -68,7 +68,6 @@ export default function GroupDetailsPage() {
           </div>
           
           <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '15px' }}>
-            {/* כאן הוספתי את ה-id וה-router לכל כרטיס */}
             <ParticipantCard id="1" name="רחל לוי" info="הצטרפה לפני חודשיים" router={router} />
             <ParticipantCard id="2" name="אברהם כהן" info="הצטרף לפני חודש" router={router} />
             <ParticipantCard id="3" name="שרה ישראלי" info="הצטרפה השבוע" router={router} />
@@ -87,20 +86,10 @@ export default function GroupDetailsPage() {
           </div>
         </div>
       </div>
-
-      {/* Footer Navigation */}
-      <nav style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '1200px', backgroundColor: 'white', display: 'flex', justifyContent: 'space-around', padding: '15px 10px 30px', borderTop: '1px solid #eee', borderRadius: '30px 30px 0 0', zIndex: 100 }}>
-           <NavItem icon="settings" label="הגדרות" />
-           <NavItem icon="analytics" label="אנליטיקות" />
-           <NavItem icon="calendar_month" label="יומן" />
-           <NavItem icon="group" label="הקבוצות שלי" active />
-           <NavItem icon="home" label="בית" onClick={() => router.push('/dashboard')} />
-      </nav>
     </div>
   );
 }
 
-// עדכון כרטיס המשתתף עם פונקציית הניווט
 function ParticipantCard({ id, name, info, router }: any) {
   return (
     <div style={{ minWidth: '160px', backgroundColor: 'white', borderRadius: '20px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', border: '1px solid #f1f4f8' }}>
@@ -140,15 +129,6 @@ function MeetingCard({ date, title, status, isNext }: any) {
         </div>
         <button style={{ width: '100%', padding: '12px', borderRadius: '14px', border: 'none', backgroundColor: '#1e4d5b', color: 'white', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>סיכום AI</button>
       </div>
-    </div>
-  );
-}
-
-function NavItem({ icon, label, active, onClick }: any) {
-  return (
-    <div onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', color: active ? '#003643' : '#999', cursor: 'pointer' }}>
-      <span className="material-symbols-outlined">{icon}</span>
-      <span style={{ fontSize: '11px', fontWeight: 'bold' }}>{label}</span>
     </div>
   );
 }

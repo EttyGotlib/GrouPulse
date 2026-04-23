@@ -8,7 +8,7 @@ export default function ParticipantProfilePage() {
   const { id } = useParams();
 
   return (
-    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '120px' }}>
+    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '140px' }}>
       
       {/* 1. Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', backgroundColor: 'white', borderBottom: '1px solid #eee' }}>
@@ -50,9 +50,7 @@ export default function ParticipantProfilePage() {
             </div>
           </div>
           
-          {/* Mock Graph Placeholder */}
           <div style={{ height: '250px', width: '100%', position: 'relative', borderBottom: '1px solid #f1f5f9', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', paddingBottom: '20px' }}>
-            {/* SVG Curve Mockup */}
             <svg style={{ position: 'absolute', bottom: '20px', width: '100%', height: '180px' }} viewBox="0 0 1000 200">
               <path d="M0,150 Q150,180 300,100 T600,50 T1000,80" fill="none" stroke="#1e4d5b" strokeWidth="4" />
             </svg>
@@ -92,20 +90,10 @@ export default function ParticipantProfilePage() {
         </div>
 
       </div>
-
-      {/* Bottom Nav Bar */}
-      <nav style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: '1000px', backgroundColor: 'white', display: 'flex', justifyContent: 'space-around', padding: '15px 10px 30px', borderTop: '1px solid #eee', borderRadius: '30px 30px 0 0', zIndex: 100 }}>
-           <NavItem icon="settings" label="הגדרות" />
-           <NavItem icon="analytics" label="אנליטיקות" />
-           <NavItem icon="calendar_month" label="יומן" />
-           <NavItem icon="group" label="הקבוצות שלי" active />
-           <NavItem icon="home" label="בית" onClick={() => router.push('/dashboard')} />
-      </nav>
     </div>
   );
 }
 
-// רכיבי עזר
 function StatCard({ label, value, isTrend }: any) {
   return (
     <div style={{ backgroundColor: '#f1f4f8', borderRadius: '20px', padding: '20px', textAlign: 'center' }}>
@@ -129,15 +117,6 @@ function RecordCard({ meeting, date, text }: any) {
       <div style={{ textAlign: 'left', marginTop: '10px' }}>
         <span className="material-symbols-outlined" style={{ color: '#cbd5e1', cursor: 'pointer' }}>more_horiz</span>
       </div>
-    </div>
-  );
-}
-
-function NavItem({ icon, label, active, onClick }: any) {
-  return (
-    <div onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', color: active ? '#003643' : '#999', cursor: 'pointer' }}>
-      <span className="material-symbols-outlined">{icon}</span>
-      <span style={{ fontSize: '10px', fontWeight: 'bold' }}>{label}</span>
     </div>
   );
 }
