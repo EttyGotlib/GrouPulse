@@ -21,10 +21,10 @@ export default function NewGroupPage() {
     const savedCount = localStorage.getItem('temp_session_count');
     const savedParticipants = localStorage.getItem('temp_participants');
 
-    if (savedName) setGroupName(savedName);
-    if (savedType) setGroupType(savedType);
-    if (savedCount) setSessionCount(parseInt(savedCount));
-    if (savedParticipants) setParticipants(JSON.parse(savedParticipants));
+    setGroupName(savedName || '');
+    setGroupType(savedType || 'קבוצת תמיכה');
+    setSessionCount(savedCount ? parseInt(savedCount) : 12);
+    setParticipants(savedParticipants ? JSON.parse(savedParticipants) : []);
   }, []);
 
   // 2. פונקציות עזר לשמירה מיידית בזיכרון בזמן שינוי

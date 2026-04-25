@@ -19,7 +19,8 @@ export default function RegisterPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    const { error } = await supabase.auth.signUp({
+    // 1. יצירת המשתמש במערכת האימות (Auth)
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -33,9 +34,27 @@ export default function RegisterPage() {
     if (error) {
       setErrorMsg('חלה שגיאה בתהליך ההרשמה. נסו שוב.');
       setLoading(false);
-    } else {
-      alert('ההרשמה הצליחה! כעת ניתן להתחבר.');
-      router.push('/login');
+    } else if (data.user) {
+      // 2. יצירת השורה בטבלת Profiles בבסיס הנתונים (החלק שהיה חסר!)
+      const { error: profileError } = await supabase
+        .from('Profiles') 
+        .insert([
+          {
+            id: data.user.id, // ה-UUID שקיבלנו מה-Auth
+            full_name: fullName,
+            email: email,
+            role: practiceType === 'institution' ? 'institution' : 'moderator'
+          }
+        ]);
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+        setErrorMsg('המשתמש נוצר אך חלה שגיאה ביצירת הפרופיל.');
+        setLoading(false);
+      } else {
+        alert('ההרשמה הצליחה! כעת ניתן להתחבר.');
+        router.push('/login');
+      }
     }
   };
 
