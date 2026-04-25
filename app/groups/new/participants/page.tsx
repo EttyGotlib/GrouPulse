@@ -12,29 +12,53 @@ export default function AddParticipantPage() {
   const [fullName, setFullName] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState(''); 
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) setFileName(file.name);
   };
 
+  const validateForm = () => {
+    if (fullName.trim().split(' ').length < 2) {
+      alert('נא להזין שם מלא (שם פרטי ומשפחה)');
+      return false;
+    }
+
+    const idRegex = /^\d{9}$/;
+    if (!idRegex.test(idNumber)) {
+      alert('תעודת זהות חייבת להכיל בדיוק 9 ספרות');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      alert('כתובת האימייל אינה תקינה');
+      return false;
+    }
+
+    const phoneRegex = /^05\d-?\d{7}$/;
+    if (!phoneRegex.test(phone)) {
+      alert('מספר הטלפון חייב להיות בפורמט תקין (למשל 0501234567)');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleAddParticipant = () => {
-    if (!fullName) return alert('אנא הזיני שם מלא');
-    
-    // קריאת המשתתפים הקיימים
+    if (!validateForm()) return;
+
     const existing = JSON.parse(localStorage.getItem('temp_participants') || '[]');
-    
-    // הוספת החדש
-    const updated = [...existing, { fullName, idNumber, email }];
-    
-    // שמירה חזרה לזיכרון
+    const updated = [...existing, { fullName, idNumber, email, phone }];
     localStorage.setItem('temp_participants', JSON.stringify(updated));
     
-    router.back(); // חזרה לדף יצירת הקבוצה
+    router.back();
   };
 
   return (
-    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif' }}>
+    // השינוי כאן: הוספנו paddingBottom כדי שהסרגל הגלובלי לא יסתיר את הכפתורים
+    <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '140px' }}>
       
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', backgroundColor: 'white' }}>
         <span className="material-symbols-outlined" style={{ color: '#003643' }}>more_vert</span>
@@ -53,13 +77,13 @@ export default function AddParticipantPage() {
 
         <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', marginBottom: '15px' }}>
           <label style={labelStyle}>מספר זהות / מזהה</label>
-          <input type="text" placeholder="9 ספרות" style={inputStyle} value={idNumber} onChange={(e) => setIdNumber(e.target.value)} />
+          <input type="text" maxLength={9} placeholder="9 ספרות" style={inputStyle} value={idNumber} onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, ''))} />
         </div>
 
         <div style={{ backgroundColor: 'white', borderRadius: '20px', padding: '20px', marginBottom: '15px' }}>
           <label style={labelStyle}>פרטי התקשרות</label>
           <input type="email" placeholder="email@example.com" style={{ ...inputStyle, marginBottom: '10px' }} value={email} onChange={(e) => setEmail(e.target.value)} />
-          <input type="text" placeholder="05X-XXXXXXX" style={inputStyle} />
+          <input type="text" placeholder="מספר טלפון (למשל 0501234567)" style={inputStyle} value={phone} onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))} />
         </div>
 
         <div onClick={() => fileInputRef.current?.click()} style={{ backgroundColor: 'white', borderRadius: '20px', padding: '30px', marginBottom: '15px', border: '1px dashed #cbd5e1', textAlign: 'center', cursor: 'pointer' }}>
@@ -69,11 +93,6 @@ export default function AddParticipantPage() {
             {fileName ? `קובץ נבחר: ${fileName}` : 'העלאת מסמכים רלוונטיים'}
           </h3>
           <button style={{ marginTop: '10px', backgroundColor: '#e2e8f0', border: 'none', padding: '8px 15px', borderRadius: '8px', fontSize: '12px' }}>בחירת קבצים</button>
-        </div>
-
-        <div style={{ backgroundColor: '#1e4d5b', color: 'white', padding: '15px', borderRadius: '15px', display: 'flex', gap: '10px', fontSize: '12px', marginBottom: '20px' }}>
-          <span className="material-symbols-outlined">info</span>
-          <p>הוספת משתתף תשלח באופן אוטומטי הזמנה ראשונית למערכת GrouPulse.</p>
         </div>
 
         <button onClick={handleAddParticipant} style={{ width: '100%', backgroundColor: '#003643', color: 'white', padding: '18px', borderRadius: '12px', border: 'none', fontWeight: 'bold', marginBottom: '10px', cursor: 'pointer' }}>הוספה לקבוצה</button>
