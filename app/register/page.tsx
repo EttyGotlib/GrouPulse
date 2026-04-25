@@ -9,7 +9,7 @@ export default function RegisterPage() {
   const [practiceType, setPracticeType] = useState<'private' | 'institution'>('private');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState(''); // או שם המוסד
+  const [fullName, setFullName] = useState(''); 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setLoading(true);
     setErrorMsg(null);
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -33,7 +33,22 @@ export default function RegisterPage() {
     if (error) {
       setErrorMsg('חלה שגיאה בתהליך ההרשמה. נסו שוב.');
       setLoading(false);
-    } else {
+    } else if (data.user) {
+      const { error: profileError } = await supabase
+        .from('Profiles') 
+        .insert([
+          {
+            id: data.user.id,
+            full_name: fullName,
+            email: email,
+            role: practiceType === 'institution' ? 'institution' : 'moderator'
+          }
+        ]);
+
+      if (profileError) {
+        console.error('Error creating profile:', profileError);
+      }
+
       alert('ההרשמה הצליחה! כעת ניתן להתחבר.');
       router.push('/login');
     }
@@ -56,15 +71,16 @@ export default function RegisterPage() {
           <p className="text-gray-600 text-lg">הצטרפו לקהילת GrouPulse ונהלו את המערך שלכם בחכמה</p>
         </div>
 
-        {/* בחירת סוג מנחה */}
         <div className="bg-gray-200 p-1 rounded-2xl flex mb-8">
           <button 
+            type="button"
             onClick={() => setPracticeType('private')}
             className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-all ${practiceType === 'private' ? 'bg-white text-[#003643] shadow-sm' : 'text-gray-500'}`}
           >
             מטפל עצמאי
           </button>
           <button 
+            type="button"
             onClick={() => setPracticeType('institution')}
             className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-all ${practiceType === 'institution' ? 'bg-white text-[#003643] shadow-sm' : 'text-gray-500'}`}
           >
@@ -110,7 +126,7 @@ export default function RegisterPage() {
             />
           </div>
 
-          {errorMsg && <p className="text-red-600 text-sm text-center">{errorMsg}</p>}
+          {errorMsg && <p className="text-red-600 text-sm text-center font-medium bg-red-50 p-2 rounded-lg">{errorMsg}</p>}
 
           <button 
             type="submit"
