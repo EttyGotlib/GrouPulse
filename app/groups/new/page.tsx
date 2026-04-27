@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 import { createNewGroup } from '../../../lib/api';
+
 export default function NewGroupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -21,10 +22,10 @@ export default function NewGroupPage() {
     const savedCount = localStorage.getItem('temp_session_count');
     const savedParticipants = localStorage.getItem('temp_participants');
 
-    if (savedName) setGroupName(savedName);
-    if (savedType) setGroupType(savedType);
-    if (savedCount) setSessionCount(parseInt(savedCount));
-    if (savedParticipants) setParticipants(JSON.parse(savedParticipants));
+    setGroupName(savedName || '');
+    setGroupType(savedType || 'קבוצת תמיכה');
+    setSessionCount(savedCount ? parseInt(savedCount) : 12);
+    setParticipants(savedParticipants ? JSON.parse(savedParticipants) : []);
   }, []);
 
   // 2. פונקציות עזר לשמירה מיידית בזיכרון בזמן שינוי
@@ -48,8 +49,6 @@ export default function NewGroupPage() {
     setLoading(true);
   
     try {
-      // כאן אנחנו קוראים לפונקציה שכתבת ב-api.js
-      // אנחנו שולחים לה אובייקט עם נתוני הקבוצה, ואת רשימת המשתתפים
       const result = await createNewGroup(
         { name: groupName, type: groupType },
         participants
@@ -63,9 +62,8 @@ export default function NewGroupPage() {
         localStorage.removeItem('temp_session_count');
   
         alert('הקבוצה נוצרה בהצלחה!');
-        router.push('/dashboard'); // מעבר לדף הבית
+        router.push('/dashboard');
       } else {
-        // אם הייתה שגיאה ב-API (למשל בעיית תקשורת), נציג אותה
         alert('שגיאה ביצירת הקבוצה: ' + result.error);
       }
     } catch (error) {
@@ -140,29 +138,6 @@ export default function NewGroupPage() {
         </button>
 
       </div>
-
-      {/* הסרגל שהיה חסר - תוקן! */}
-      <nav style={{ 
-        position: 'fixed', 
-        bottom: 0, 
-        left: '50%', 
-        transform: 'translateX(-50%)', 
-        width: '100%', 
-        maxWidth: '450px', 
-        backgroundColor: 'white', 
-        display: 'flex', 
-        justifyContent: 'space-around', 
-        padding: '15px 10px 30px', 
-        borderTop: '1px solid #eee', 
-        borderRadius: '30px 30px 0 0', 
-        zIndex: 100 
-      }}>
-           <NavItem icon="settings" label="הגדרות" />
-           <NavItem icon="analytics" label="אנליטיקות" />
-           <NavItem icon="calendar_month" label="יומן" />
-           <NavItem icon="group" label="הקבוצות שלי" active />
-           <NavItem icon="home" label="בית" onClick={() => router.push('/dashboard')} />
-      </nav>
     </div>
   );
 }
@@ -172,12 +147,3 @@ const cardStyle = { backgroundColor: 'white', borderRadius: '20px', padding: '20
 const labelStyle = { display: 'block', fontWeight: 'bold', color: '#003643', marginBottom: '10px', fontSize: '14px' };
 const inputStyle = { width: '100%', padding: '15px', borderRadius: '12px', border: 'none', backgroundColor: '#e9eef5', outline: 'none' };
 const stepperBtn = { background: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontWeight: 'bold', fontSize: '20px' };
-
-function NavItem({ icon, label, active, onClick }: any) {
-  return (
-    <div onClick={onClick} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', color: active ? '#003643' : '#999', cursor: 'pointer' }}>
-      <span className="material-symbols-outlined">{icon}</span>
-      <span style={{ fontSize: '10px', fontWeight: 'bold' }}>{label}</span>
-    </div>
-  );
-}
