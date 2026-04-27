@@ -1,10 +1,11 @@
 "use client";
 
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 export default function PreparationPage() {
   const router = useRouter();
+  const { id, num } = useParams();
 
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f]">
@@ -32,7 +33,7 @@ export default function PreparationPage() {
             </div>
           </div>
           <div className="bg-[#003643] text-white p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-md">
-            <span className="text-4xl font-black">08</span>
+            <span className="text-4xl font-black">{num}</span>
             <span className="text-[10px] opacity-70 font-bold uppercase tracking-widest mt-1">מספר מפגש</span>
           </div>
         </section>
@@ -64,21 +65,21 @@ export default function PreparationPage() {
         <section className="flex flex-col gap-4">
           <h3 className="text-lg font-bold text-[#003643] px-1">תכנון התערבויות</h3>
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 relative overflow-hidden">
-             <div className="flex justify-between items-start mb-3">
-                <span className="bg-[#b7ecf3] text-[#164e54] px-3 py-1 rounded-full text-[10px] font-bold uppercase">פתיחה (15 דק')</span>
-                <span className="material-symbols-outlined text-slate-300 cursor-pointer">more_horiz</span>
-             </div>
-             <h4 className="font-bold text-[#003643] text-md">תרגיל דמיון מונחה</h4>
-             <p className="text-slate-500 text-xs mt-2 leading-relaxed">שימוש בטכניקת "החוף הבטוח" לוויסות רגשי ראשוני לאחר שבוע עמוס.</p>
+              <div className="flex justify-between items-start mb-3">
+                 <span className="bg-[#b7ecf3] text-[#164e54] px-3 py-1 rounded-full text-[10px] font-bold uppercase">פתיחה (15 דק')</span>
+                 <span className="material-symbols-outlined text-slate-300 cursor-pointer">more_horiz</span>
+              </div>
+              <h4 className="font-bold text-[#003643] text-md">תרגיל דמיון מונחה</h4>
+              <p className="text-slate-500 text-xs mt-2 leading-relaxed">שימוש בטכניקת "החוף הבטוח" לוויסות רגשי ראשוני לאחר שבוע עמוס.</p>
           </div>
 
           <div className="bg-white p-5 rounded-3xl shadow-sm border border-slate-50 relative overflow-hidden">
-             <div className="flex justify-between items-start mb-3">
-                <span className="bg-[#b3edea] text-[#0e4f4d] px-3 py-1 rounded-full text-[10px] font-bold uppercase">לב המפגש (40 דק')</span>
-                <span className="material-symbols-outlined text-slate-300 cursor-pointer">more_horiz</span>
-             </div>
-             <h4 className="font-bold text-[#003643] text-md">משחק תפקידים אסימטרי</h4>
-             <p className="text-slate-500 text-xs mt-2 leading-relaxed">חלוקה לזוגות: צד אחד מביע כעס והשני מתרגל הקשבה פעילה ללא שיפוטיות.</p>
+              <div className="flex justify-between items-start mb-3">
+                 <span className="bg-[#b3edea] text-[#0e4f4d] px-3 py-1 rounded-full text-[10px] font-bold uppercase">לב המפגש (40 דק')</span>
+                 <span className="material-symbols-outlined text-slate-300 cursor-pointer">more_horiz</span>
+              </div>
+              <h4 className="font-bold text-[#003643] text-md">משחק תפקידים אסימטרי</h4>
+              <p className="text-slate-500 text-xs mt-2 leading-relaxed">חלוקה לזוגות: צד אחד מביע כעס והשני מתרגל הקשבה פעילה ללא שיפוטיות.</p>
           </div>
         </section>
 
