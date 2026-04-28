@@ -34,22 +34,7 @@ export default function LoginPage() {
     }
   };
 
-  // התחברות עם גוגל
-  const handleGoogleLogin = async () => {
-    console.log("ניסיון התחברות לגוגל התחיל..."); // <--- הוספנו את זה
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-                
-      },
-    });
-
-    if (error) {
-      console.error('שגיאה בהתחברות עם גוגל:', error.message); // <--- הוספנו הדפסת שגיאה מפורטת
-      setErrorMsg('שגיאה בהתחברות עם גוגל');    }
-  };
-
+ 
   // פונקציה לשליחת מייל שחזור סיסמה
   const handleForgotPassword = async () => {
     if (!email) {
@@ -136,24 +121,7 @@ export default function LoginPage() {
                 {loading ? 'מתחבר...' : 'התחברות'}
               </button>
 
-              <div className="relative flex items-center py-4">
-                <div className="flex-grow border-t border-gray-200"></div>
-                <span className="flex-shrink mx-4 text-xs font-medium text-gray-400 uppercase">או</span>
-                <div className="flex-grow border-t border-gray-200"></div>
-              </div>
-
-              {/* כפתור גוגל שהוחזר */}
-              <button 
-  type="button" 
-  onClick={() => handleGoogleLogin()} // בלי e ובלי מורכבויות
-  className="w-full flex items-center justify-center gap-3 py-3 border border-gray-300 rounded-xl hover:bg-gray-50 transition-colors group"
->
-  <svg className="w-5 h-5" viewBox="0 0 24 24">
-    {/* כאן ה-SVG שלך */}
-  </svg>
-  <span className="text-sm font-semibold text-gray-700">המשך באמצעות Google</span>
-</button>
-
+              
               {/* קישור להרשמה שהוחזר */}
               <p className="text-center text-sm text-gray-600">
                 אין לך חשבון?{' '}

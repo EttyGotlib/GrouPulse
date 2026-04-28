@@ -31,7 +31,12 @@ export default function RegisterPage() {
     });
 
     if (error) {
-      setErrorMsg('חלה שגיאה בתהליך ההרשמה. נסו שוב.');
+      // בדיקה האם השגיאה היא שהמשתמש כבר רשום
+      if (error.message.includes('User already registered') || error.status === 422) {
+        setErrorMsg('כתובת המייל הזו כבר רשומה במערכת. נסו להתחבר.');
+      } else {
+        setErrorMsg('חלה שגיאה בתהליך ההרשמה: ' + error.message);
+      }
       setLoading(false);
     } else if (data.user) {
       const { error: profileError } = await supabase
