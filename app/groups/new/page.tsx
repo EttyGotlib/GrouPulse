@@ -12,9 +12,11 @@ export default function NewGroupPage() {
   // State לניהול הטופס
   const [groupName, setGroupName] = useState('');
   const [groupType, setGroupType] = useState('קבוצת תמיכה');
-  const [sessionCount, setSessionCount] = useState(12);
+  const [session_count, setSessionCount] = useState(12);
   const [participants, setParticipants] = useState<any[]>([]);
-
+  const [start_date, setStartDate] = useState('');
+  const [meeting_day, setMeetingDay] = useState('');
+  const [location_notes, setLocationNotes] = useState('');
   // 1. טעינת נתונים מהזיכרון ברגע שהדף עולה
   useEffect(() => {
     const savedName = localStorage.getItem('temp_group_name');
@@ -50,7 +52,12 @@ export default function NewGroupPage() {
   
     try {
       const result = await createNewGroup(
-        { name: groupName, type: groupType },
+        {name: groupName, 
+          type: groupType,
+          session_count: session_count,
+          meeting_day: meeting_day,
+          location_notes: location_notes,
+          start_date: start_date },
         participants
       );
   
@@ -111,9 +118,9 @@ export default function NewGroupPage() {
         <div style={cardStyle}>
           <label style={labelStyle}>מספר מפגשים מתוכנן</label>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#e9eef5', borderRadius: '12px', padding: '8px' }}>
-            <button onClick={() => handleCountChange(sessionCount + 1)} style={stepperBtn}>+</button>
-            <span style={{ fontSize: '22px', fontWeight: 'bold', color: '#003643' }}>{sessionCount}</span>
-            <button onClick={() => handleCountChange(Math.max(1, sessionCount - 1))} style={stepperBtn}>-</button>
+            <button onClick={() => handleCountChange(session_count + 1)} style={stepperBtn}>+</button>
+            <span style={{ fontSize: '22px', fontWeight: 'bold', color: '#003643' }}>{session_count}</span>
+            <button onClick={() => handleCountChange(Math.max(1, session_count - 1))} style={stepperBtn}>-</button>
           </div>
         </div>
 
@@ -122,13 +129,17 @@ export default function NewGroupPage() {
         {/* תאריך התחלה */}
         <div style={cardStyle}>
           <label style={labelStyle}>מתי תאריך ההתחלה?</label>
-          <input type="date" style={inputStyle} />
+          <input type="date" style={inputStyle} value={start_date} onChange={(e) => setStartDate(e.target.value)} />
         </div>
 
         {/* יום המפגש */}
         <div style={cardStyle}>
           <label style={labelStyle}>מה יום המפגש הקבוע?</label>
-          <select style={inputStyle}>
+          <select 
+            style={inputStyle}
+            value={meeting_day}
+            onChange={(e) => setMeetingDay(e.target.value)}
+          >
             <option value="">בחרי יום...</option>
             <option>יום ראשון</option>
             <option>יום שני</option>
@@ -145,6 +156,8 @@ export default function NewGroupPage() {
           <textarea 
             placeholder="למשל: המפגשים יתקיימו בזום / בקליניקה" 
             style={{...inputStyle, height: '80px', resize: 'none', paddingTop: '15px'}} 
+            value={location_notes} // החיבור ל-State החדש
+            onChange={(e) => setLocationNotes(e.target.value)}
           />
         </div>
 

@@ -30,7 +30,7 @@ export default function GroupDetailsPage() {
   if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>טוען נתונים...</div>;
   if (!groupData) return <div style={{ textAlign: 'center', marginTop: '50px' }}>קבוצה לא נמצאה</div>;
 
-  const totalSessions = groupData.session_count || 12;
+  const totalSessions = Number(groupData.session_count) || 12;
   const sessions = Array.from({ length: totalSessions }, (_, i) => i + 1).reverse();
 
   return (
@@ -66,7 +66,7 @@ export default function GroupDetailsPage() {
             <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>לו"ז מפגשים</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span className="material-symbols-outlined" style={{ opacity: 0.8 }}>calendar_month</span>
-              <span style={{ fontSize: '16px' }}>{groupData.meeting_day || 'יום שני'}</span>
+              <span style={{ fontSize: '16px' }}> {groupData.meeting_day}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span className="material-symbols-outlined" style={{ opacity: 0.8 }}>location_on</span>
