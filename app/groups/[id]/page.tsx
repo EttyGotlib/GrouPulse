@@ -155,7 +155,22 @@ function MeetingCard({ num, isNext, groupId, router }: any) {
             תיעוד המפגש
           </button>
         </div>
-        <button style={{ width: '100%', padding: '12px', borderRadius: '14px', border: 'none', backgroundColor: '#1e4d5b', color: 'white', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>סיכום AI</button>
+        <button 
+  onClick={() => router.push(`/groups/${groupId}/ai-summary/${num}`)}
+  style={{ 
+    width: '100%', 
+    padding: '12px', 
+    borderRadius: '14px', 
+    border: 'none', 
+    backgroundColor: '#1e4d5b', 
+    color: 'white', 
+    fontWeight: 'bold', 
+    fontSize: '14px', 
+    cursor: 'pointer' 
+  }}
+>
+  סיכום AI
+</button>
       </div>
     </div>
   );
