@@ -7,16 +7,12 @@ export default function BottomNav() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // --- הגדרת דפים ללא סרגל ---
-  // הוסיפי כאן כל נתיב שבו את רוצה שהסרגל ייעלם (למשל login או register)
   const hideOnPages = ['/login', '/register', '/']; 
   
   if (hideOnPages.includes(pathname)) {
-    return null; // הפונקציה עוצרת כאן ולא מרנדרת את הסרגל
+    return null; 
   }
-  // -------------------------
 
-  // פונקציית עזר לבדיקה אם הכפתור פעיל
   const isActive = (path: string) => {
     if (path === '/dashboard' && pathname === '/dashboard') return true;
     if (path !== '/dashboard' && pathname.startsWith(path)) return true;
@@ -24,53 +20,67 @@ export default function BottomNav() {
   };
 
   return (
-    <nav style={{ 
-      position: 'fixed', 
-      bottom: 0, 
-      left: '50%', 
-      transform: 'translateX(-50%)', 
-      width: '100%', 
-      maxWidth: '1200px', 
-      backgroundColor: 'white', 
-      display: 'flex', 
-      justifyContent: 'space-around', 
-      padding: '15px 10px 30px', 
-      borderTop: '1px solid #eee', 
-      borderRadius: '30px 30px 0 0', 
-      zIndex: 1000,
-      boxShadow: '0 -5px 20px rgba(0,0,0,0.05)'
-    }}>
-      <NavItem 
-        icon="settings" 
-        label="הגדרות" 
-        active={isActive('/settings')} 
-        onClick={() => router.push('/settings')} 
-      />
-      <NavItem 
-        icon="analytics" 
-        label="אנליטיקות" 
-        active={isActive('/analytics')} 
-        onClick={() => router.push('/analytics')} 
-      />
-      <NavItem 
-        icon="calendar_month" 
-        label="יומן" 
-        active={isActive('/calendar')} 
-        onClick={() => router.push('/calendar')} 
-      />
-      <NavItem 
-        icon="group" 
-        label="הקבוצות שלי" 
-        active={pathname.includes('/groups') || pathname.includes('/participants')} 
-        onClick={() => router.push('/dashboard')} 
-      />
-      <NavItem 
-        icon="home" 
-        label="בית" 
-        active={isActive('/dashboard')} 
-        onClick={() => router.push('/dashboard')} 
-      />
-    </nav>
+    <>
+      {/* התיקון הסופי: הזרקת CSS שדואג להעלים את הסרגל בזמן הדפסה בלבד */}
+      <style>{`
+        @media print {
+          .force-hide-on-print {
+            display: none !important;
+          }
+        }
+      `}</style>
+
+      <nav 
+        className="force-hide-on-print" // המחלקה שמוגדרת למעלה בסטייל
+        style={{ 
+          position: 'fixed', 
+          bottom: 0, 
+          left: '50%', 
+          transform: 'translateX(-50%)', 
+          width: '100%', 
+          maxWidth: '1200px', 
+          backgroundColor: 'white', 
+          display: 'flex', 
+          justifyContent: 'space-around', 
+          padding: '15px 10px 30px', 
+          borderTop: '1px solid #eee', 
+          borderRadius: '30px 30px 0 0', 
+          zIndex: 1000,
+          boxShadow: '0 -5px 20px rgba(0,0,0,0.05)'
+        }}
+      >
+        <NavItem 
+          icon="settings" 
+          label="הגדרות" 
+          active={isActive('/settings')} 
+          onClick={() => router.push('/settings')} 
+        />
+        <NavItem 
+          icon="analytics" 
+          label="אנליטיקות" 
+          active={isActive('/analytics')} 
+          onClick={() => router.push('/analytics')} 
+        />
+        <NavItem 
+          icon="calendar_month" 
+          label="יומן" 
+          active={isActive('/calendar')} 
+          onClick={() => router.push('/calendar')} 
+        />
+        <NavItem 
+          icon="group" 
+          label="הקבוצות שלי" 
+          active={pathname.includes('/groups') || pathname.includes('/participants')} 
+          onClick={() => router.push('/dashboard')} 
+        />
+        <NavItem 
+          icon="home" 
+          label="בית" 
+          active={isActive('/dashboard')} 
+          onClick={() => router.push('/dashboard')} 
+        />
+      </nav>
+    </>
   );
 }
 

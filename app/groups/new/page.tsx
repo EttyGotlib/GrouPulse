@@ -117,6 +117,39 @@ export default function NewGroupPage() {
           </div>
         </div>
 
+        {/* --- השינויים החדשים מתחילים כאן --- */}
+
+        {/* תאריך התחלה */}
+        <div style={cardStyle}>
+          <label style={labelStyle}>מתי תאריך ההתחלה?</label>
+          <input type="date" style={inputStyle} />
+        </div>
+
+        {/* יום המפגש */}
+        <div style={cardStyle}>
+          <label style={labelStyle}>מה יום המפגש הקבוע?</label>
+          <select style={inputStyle}>
+            <option value="">בחרי יום...</option>
+            <option>יום ראשון</option>
+            <option>יום שני</option>
+            <option>יום שלישי</option>
+            <option>יום רביעי</option>
+            <option>יום חמישי</option>
+            <option>יום שישי</option>
+          </select>
+        </div>
+
+        {/* הערות ללו"ז */}
+        <div style={cardStyle}>
+          <label style={labelStyle}>הערות ללו"ז ומיקום</label>
+          <textarea 
+            placeholder="למשל: המפגשים יתקיימו בזום / בקליניקה" 
+            style={{...inputStyle, height: '80px', resize: 'none', paddingTop: '15px'}} 
+          />
+        </div>
+
+        {/* --- סוף השינויים החדשים --- */}
+
         {/* תצוגת משתתפים שנוספו */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '15px' }}>
           {participants.map((p, index) => (
