@@ -16,7 +16,8 @@ export default function GroupDetailsPage() {
   useEffect(() => {
     async function loadData() {
       if (id) {
-        const result = await getGroupDetails(id);
+        // שולף את הנתונים המעודכנים ששמרת (כולל יום ומיקום)
+        const result = await getGroupDetails(id as string);
         if (result.success) {
           setGroupData(result.group);
           setParticipants(result.participants);
@@ -30,6 +31,7 @@ export default function GroupDetailsPage() {
   if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>טוען נתונים...</div>;
   if (!groupData) return <div style={{ textAlign: 'center', marginTop: '50px' }}>קבוצה לא נמצאה</div>;
 
+  // חישוב מספר המפגשים - אם לא הוגדר ב-DB, ברירת המחדל היא 12
   const totalSessions = groupData.session_count || 12;
   const sessions = Array.from({ length: totalSessions }, (_, i) => i + 1).reverse();
 
@@ -47,10 +49,13 @@ export default function GroupDetailsPage() {
         
         {/* Top Section */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '20px', marginBottom: '30px' }}>
+          
+          {/* כרטיסיית פרטים כלליים */}
           <div style={{ backgroundColor: 'white', borderRadius: '24px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#003643', marginBottom: '15px' }}>{groupData.name}</h1>
             <p style={{ color: '#41484b', fontSize: '16px', lineHeight: '1.6', marginBottom: '25px' }}>
-              {groupData.type} - מרחב בטוח לשיתוף ועיבוד חוויות רגשיות, הקניית כלים לוויסות עצמי ותמיכה הדדית בסביבה קלינית מבוקרת.
+              {/* מציג את התיאור האמיתי מה-DB, ואם אין - מציג ברירת מחדל יפה */}
+              {groupData.description || groupData.location_notes || `${groupData.type} - מרחב בטוח לשיתוף ועיבוד חוויות רגשיות.`}
             </p>
             <div style={{ display: 'flex', gap: '15px' }}>
               <div style={{ backgroundColor: '#cff0f6', color: '#003643', padding: '8px 16px', borderRadius: '12px', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -62,15 +67,16 @@ export default function GroupDetailsPage() {
             </div>
           </div>
 
+          {/* כרטיסיית לו"ז כחולה - ! */}
           <div style={{ backgroundColor: '#003643', borderRadius: '24px', padding: '30px', color: 'white', display: 'flex', flexDirection: 'column', justifyContent: 'center', gap: '20px' }}>
             <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>לו"ז מפגשים</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span className="material-symbols-outlined" style={{ opacity: 0.8 }}>calendar_month</span>
-              <span style={{ fontSize: '16px' }}>{groupData.meeting_day || 'יום שני'}</span>
+              <span style={{ fontSize: '16px' }}>יום {groupData.meeting_day || 'לא נקבע'}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span className="material-symbols-outlined" style={{ opacity: 0.8 }}>location_on</span>
-              <span style={{ fontSize: '16px' }}>{groupData.location_notes || 'קליניקה / זום'}</span>
+              <span style={{ fontSize: '16px' }}>{groupData.location_notes || 'טרם הוזן מיקום'}</span>
             </div>
           </div>
         </div>
@@ -85,7 +91,13 @@ export default function GroupDetailsPage() {
           </div>
           <div style={{ display: 'flex', gap: '15px', overflowX: 'auto', paddingBottom: '15px' }}>
             {participants.map((p: any) => (
-              <ParticipantCard key={p.id} id={p.id} name={p.fullName || p.name_or_code} info={p.email || "משתתף רשום"} router={router} />
+              <ParticipantCard 
+                key={p.id} 
+                id={p.id} 
+                name={p.name_or_code || p.fullName} 
+                info={p.email || "משתתף רשום"} 
+                router={router} 
+              />
             ))}
           </div>
         </div>
@@ -116,6 +128,7 @@ export default function GroupDetailsPage() {
   );
 }
 
+// קומפוננטת כרטיס מפגש
 function MeetingCard({ num, isNext, groupId, router }: any) {
   return (
     <div style={{ backgroundColor: 'white', borderRadius: '24px', padding: '25px', boxShadow: '0 4px 15px rgba(0,0,0,0.02)', border: isNext ? '2px solid #cff0f6' : '1px solid #f1f4f8' }}>
@@ -125,57 +138,28 @@ function MeetingCard({ num, isNext, groupId, router }: any) {
             <div style={{ fontSize: '18px', fontWeight: '900', color: '#003643' }}>{num}</div>
          </div>
          <div style={{ textAlign: 'right', flex: 1, marginRight: '20px' }}>
-            <div style={{ fontWeight: 'bold', color: '#003643', fontSize: '17px' }}>מפגש {num}: נושא המפגש</div>
+            <div style={{ fontWeight: 'bold', color: '#003643', fontSize: '17px' }}>מפגש {num}</div>
             <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>{isNext ? 'מפגש הבא' : 'הושלם'}</div>
          </div>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <div style={{ display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={() => router.push(`/groups/${groupId}/preparation/${num}`)}
-            style={{ flex: 1, padding: '12px', borderRadius: '14px', border: '1px solid #e1e8ed', backgroundColor: isNext ? '#003643' : 'white', color: isNext ? 'white' : '#003643', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}
-          >
+          <button onClick={() => router.push(`/groups/${groupId}/preparation/${num}`)} style={{ flex: 1, padding: '12px', borderRadius: '14px', border: '1px solid #e1e8ed', backgroundColor: isNext ? '#003643' : 'white', color: isNext ? 'white' : '#003643', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
             הכנה למפגש
           </button>
-          {/* הכפתור המעודכן */}
-          <button 
-            onClick={() => router.push(`/groups/${groupId}/session-log/${num}`)}
-            style={{ 
-              flex: 1, 
-              padding: '12px', 
-              borderRadius: '14px', 
-              border: '1px solid #e1e8ed', 
-              backgroundColor: '#f8fafc', 
-              color: '#475569', 
-              fontSize: '13px', 
-              fontWeight: 'bold', 
-              cursor: 'pointer' 
-            }}
-          >
+          <button onClick={() => router.push(`/groups/${groupId}/session-log/${num}`)} style={{ flex: 1, padding: '12px', borderRadius: '14px', border: '1px solid #e1e8ed', backgroundColor: '#f8fafc', color: '#475569', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer' }}>
             תיעוד המפגש
           </button>
         </div>
-        <button 
-  onClick={() => router.push(`/groups/${groupId}/ai-summary/${num}`)}
-  style={{ 
-    width: '100%', 
-    padding: '12px', 
-    borderRadius: '14px', 
-    border: 'none', 
-    backgroundColor: '#1e4d5b', 
-    color: 'white', 
-    fontWeight: 'bold', 
-    fontSize: '14px', 
-    cursor: 'pointer' 
-  }}
->
-  סיכום AI
-</button>
+        <button onClick={() => router.push(`/groups/${groupId}/ai-summary/${num}`)} style={{ width: '100%', padding: '12px', borderRadius: '14px', border: 'none', backgroundColor: '#1e4d5b', color: 'white', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' }}>
+          סיכום AI
+        </button>
       </div>
     </div>
   );
 }
 
+// קומפוננטת כרטיס משתתף
 function ParticipantCard({ id, name, info, router }: any) {
   return (
     <div style={{ minWidth: '160px', backgroundColor: 'white', borderRadius: '20px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', border: '1px solid #f1f4f8' }}>
