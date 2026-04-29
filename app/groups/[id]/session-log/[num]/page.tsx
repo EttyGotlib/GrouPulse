@@ -17,12 +17,13 @@ export default function SessionLogPage() {
   const [atmosphere, setAtmosphere] = useState('');
   
   // State לנוכחות - אתחול עם רשימת המשתתפים
-  const [attendance, setAttendance] = useState([
-    { name: 'אלון ר.', present: false, notes: '' },
-    { name: 'מיכל כ.', present: false, notes: '' },
-    { name: 'יואב ל.', present: false, notes: '' },
-    { name: 'דנה פ.', present: false, notes: '' }
-  ]);
+// State לנוכחות - אתחול עם רשימת המשתתפים (הוספנו participationLevel)
+const [attendance, setAttendance] = useState([
+  { name: 'אלון ר.', present: false, notes: '', participationLevel: 0 },
+  { name: 'מיכל כ.', present: false, notes: '', participationLevel: 0 },
+  { name: 'יואב ל.', present: false, notes: '', participationLevel: 0 },
+  { name: 'דנה פ.', present: false, notes: '', participationLevel: 0 }
+]);
 
   // 1. טעינת הנתונים ברגע שהדף עולה
   useEffect(() => {
@@ -32,6 +33,7 @@ export default function SessionLogPage() {
       setLogText(parsed.logText || '');
       setCohesion(parsed.cohesion || '');
       setEngagement(parsed.engagement || '');
+      setAtmosphere(parsed.atmosphere || ''); 
       if (parsed.attendance) {
         setAttendance(parsed.attendance);
       }
@@ -39,12 +41,19 @@ export default function SessionLogPage() {
   }, [storageKey]);
 
   // 2. פונקציית עזר לשמירה אוטומטית
-  const saveToLocal = (newText: string, newCohesion: string, newEngagement: string, newAttendance: any[]) => {
+  const saveToLocal = (
+    newText: string, 
+    newCohesion: string, 
+    newEngagement: string,
+    newAtmosphere: string, 
+    newAttendance: any[]) => {
     const dataToSave = {
       logText: newText,
       cohesion: newCohesion,
       engagement: newEngagement,
+      atmosphere: newAtmosphere,
       attendance: newAttendance
+      
     };
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
   };
@@ -54,7 +63,15 @@ export default function SessionLogPage() {
     const updatedAttendance = [...attendance];
     updatedAttendance[index].present = !updatedAttendance[index].present;
     setAttendance(updatedAttendance);
-    saveToLocal(logText, cohesion, engagement, updatedAttendance);
+    saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
+  };
+
+  // פונקציה חדשה לעדכון רמת השתתפות (1-5)
+  const updateParticipationLevel = (index: number, level: number) => {
+    const updatedAttendance = [...attendance];
+    updatedAttendance[index].participationLevel = level;
+    setAttendance(updatedAttendance);
+    saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
   };
 
   // פונקציה לעדכון הערה ספציפית למשתתף
@@ -62,7 +79,7 @@ export default function SessionLogPage() {
     const updatedAttendance = [...attendance];
     updatedAttendance[index].notes = text;
     setAttendance(updatedAttendance);
-    saveToLocal(logText, cohesion, engagement, updatedAttendance);
+    saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
   };
 
   return (
@@ -94,7 +111,7 @@ export default function SessionLogPage() {
               value={logText}
               onChange={(e) => {
                 setLogText(e.target.value);
-                saveToLocal(e.target.value, cohesion, engagement, attendance);
+                saveToLocal(e.target.value, cohesion, engagement, atmosphere, attendance);
               }}
               className="w-full min-h-[160px] bg-[#f1f4f8] border-none rounded-xl p-6 focus:ring-0 focus:bg-white transition-all leading-relaxed text-right" 
               placeholder="תאר את מהלך המפגש, תובנות מרכזיות ודינמיקה בין המשתתפים..."
@@ -111,7 +128,7 @@ export default function SessionLogPage() {
                     key={val}
                     onClick={() => {
                       setCohesion(val);
-                      saveToLocal(logText, val, engagement, attendance);
+                      saveToLocal(logText, val, engagement, atmosphere, attendance);
                     }}
                     className={`flex-1 py-2 text-xs font-medium rounded-lg border transition-all ${cohesion === val ? 'bg-[#003643] text-white' : 'bg-white border-slate-200'}`}
                   >
@@ -129,7 +146,7 @@ export default function SessionLogPage() {
                     key={val}
                     onClick={() => {
                       setEngagement(val);
-                      saveToLocal(logText, cohesion, val, attendance);
+                      saveToLocal(logText, cohesion, val, atmosphere, attendance);
                     }}
                     className={`flex-1 py-2 text-xs font-medium rounded-lg border transition-all ${engagement === val ? 'bg-[#003643] text-white' : 'bg-white border-slate-200'}`}
                   >
@@ -146,7 +163,7 @@ export default function SessionLogPage() {
                     key={val}
                     onClick={() => {
                       setAtmosphere(val);
-                      saveToLocal(logText, cohesion, val, attendance);
+                      saveToLocal(logText, cohesion, engagement, val, attendance);
                     }}
                     className={`flex-1 py-2 text-xs font-medium rounded-lg border transition-all ${atmosphere === val ? 'bg-[#003643] text-white' : 'bg-white border-slate-200'}`}
                   >
@@ -203,11 +220,31 @@ export default function SessionLogPage() {
                         </div>
                       </div>
                     </div>
+
+                  {/* רכיב בחירת רמת השתתפות 1-5 */}
+                  <div className="bg-[#f1f4f8] rounded-2xl p-4 space-y-3">
+                      <label className="block text-center text-[#003643] font-bold text-sm">רמת השתתפות במפגש</label>
+                      <div className="flex justify-between gap-2 px-2">
+                        {[1, 2, 3, 4, 5].map((level) => (
+                          <button
+                            key={level}
+                            onClick={() => updateParticipationLevel(i, level)}
+                            className={`w-full py-2 rounded-xl font-bold transition-all ${
+                              person.participationLevel === level 
+                              ? 'bg-[#003643] text-white shadow-md' 
+                              : 'bg-white text-slate-400 hover:bg-white/80'
+                            }`}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
                     <textarea 
                       value={person.notes}
                       onChange={(e) => updateParticipantNotes(i, e.target.value)}
-                      className="w-full bg-[#f1f4f8] border-none rounded-xl p-4 text-sm leading-relaxed focus:ring-2 focus:ring-[#b7ecf3] focus:bg-white transition-all text-right" 
-                      rows={3}
+                      className="w-full bg-[#f1f4f8] border-none rounded-2xl p-5 text-sm leading-relaxed focus:ring-2 focus:ring-[#b7ecf3] focus:bg-white transition-all text-right min-h-[120px] mt-6"                      rows={3}
                       placeholder={`הוסף הערה אישית על ${person.name}...`}
                     ></textarea>
                   </div>
@@ -222,7 +259,7 @@ export default function SessionLogPage() {
           <button 
             onClick={() => {
                 // שמירה סופית ויציאה ללא alert
-                saveToLocal(logText, cohesion, engagement, attendance);
+                saveToLocal(logText, cohesion, engagement, atmosphere, attendance);
                 router.push(`/groups/${id}`);
             }}
             className="w-full py-5 bg-[#003643] text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-3"

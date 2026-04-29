@@ -12,6 +12,10 @@ export default function AiSummaryPage() {
   const manualKey = `ai_manual_insights_${id}_${num}`;
   const groupDataKey = `group_data_${id}`;
 
+
+// State לשם הקבוצה כדי להציג אותו בכותרת
+  const [groupName, setGroupName] = useState('');
+
   // State לנתונים הדינמיים
   const [aiData, setAiData] = useState<any>(null);
   const [manualText, setManualText] = useState('');
@@ -29,27 +33,35 @@ export default function AiSummaryPage() {
     setIsMounted(true);
     
     const fetchAiSummary = async () => {
-      // הגנות בסיסיות
       if (fetchedRef.current) return;
       if (!id || !num) return;
 
       setIsLoading(true);
       try {
         const rawDataString = localStorage.getItem(logStorageKey);
-        const savedManual = localStorage.getItem(manualKey);
         
-        if (savedManual) setManualText(savedManual);
-      
-        if (!rawDataString) {
-          setHasData(false);
-          setIsLoading(false);
-          return;
+        // --- 1. שליפת שם הקבוצה (תמיד קורה ראשון) ---
+        const groupDataRaw = localStorage.getItem(groupDataKey);
+        let currentGroupName = "קבוצה כללית";
+        if (groupDataRaw) {
+          const parsedGroup = JSON.parse(groupDataRaw);
+          currentGroupName = parsedGroup.name || parsedGroup.title || currentGroupName;
         }
-      
-        const rawData = JSON.parse(rawDataString);
-        const hasDetailedInfo = rawData.description?.trim() || (rawData.metrics && Object.keys(rawData.metrics).length > 0);
-      
-        if (!rawData.attendance && !hasDetailedInfo) {
+        setGroupName(currentGroupName); // עדכון ה-State לתצוגה בדף
+        // ------------------------------------------
+
+        // --- 2. בדיקת Cache ---
+        const cachedAiData = localStorage.getItem(`ai_cache_${id}_${num}`);
+        if (cachedAiData && rawDataString) {
+          const parsedCache = JSON.parse(cachedAiData);
+          if (parsedCache.sourceData === rawDataString) {
+            setAiData(parsedCache.aiResult);
+            setIsLoading(false);
+            return; // כאן הקוד עוצר אם יש Cache
+          }
+        }
+
+        if (!rawDataString) {
           setHasData(false);
           setIsLoading(false);
           return;
@@ -66,10 +78,18 @@ export default function AiSummaryPage() {
           body: JSON.stringify({ 
             prompt: `
             אתה מנוע ניתוח נתונים.
-            
+            שם הקבוצה: "${currentGroupName}"
+
             החזר תשובה בפורמט JSON תקין בלבד.
             אסור להוסיף טקסט, הסברים או Markdown.
+
+            דגשים לניתוח:
+            תתנהג כאילו אתה מטפל ב-שם הקבוצה
+            1. cohesionScore: אם במדד ה-cohesion כתוב "גבוהה" תן ציון 85-100, "בינונית" 50-80, "נמוכה" 10-40(לאחר ניתוח כללי מעמיק, מקצועי ואמין ולא רק על פי הנתון של "מדד לכידות קבוצתית בדף התיעוד")
+            2. insights: חלץ 3 תובנות מקצועיות על הדינמיקה במהלך המפגש ביחס לשם הקבוצה(תאר במשפט).
+            3. individualHighlights: התייחס לכל משתתף שמופיע בתיעוד הפרטני ולרמת ההשתתפות שלו(חלץ תובנות פרטניות ומקצועיות)
             
+
             הפורמט חייב להיות בדיוק:
             
             {
@@ -148,7 +168,7 @@ export default function AiSummaryPage() {
 
   const handleGoBack = () => {
     if (isMounted) {
-      router.push('/dashboard');
+      router.push(`/groups/${id}`);// תיקון ניתוב חזרה לדף הקבוצה במקום לדשבורד
     }
   };
   
@@ -165,7 +185,7 @@ export default function AiSummaryPage() {
       <span className="material-symbols-outlined text-5xl mb-4 text-slate-300">error_outline</span>
       <h2 className="text-2xl font-bold">שגיאה בטעינת הנתונים</h2>
       <p className="text-slate-500 mt-2">{errorMsg}</p>
-      <button onClick={handleGoBack} className="mt-6 bg-[#003643] text-white px-6 py-2 rounded-xl font-bold">חזרה ללוח הבקרה</button>
+      <button onClick={handleGoBack} className="mt-6 bg-[#003643] text-white px-6 py-2 rounded-xl font-bold">חזרה לדף הקודם</button>
     </div>
   );
   if (!hasData) return (
@@ -198,7 +218,7 @@ export default function AiSummaryPage() {
         <div className="text-center md:text-right space-y-2 pt-4">
             <span className="text-[#32666d] text-xs font-bold uppercase tracking-widest print:text-black">ניתוח מערכת AI</span>
             <h2 className="text-3xl font-black text-[#003643] print:text-black">סיכום מפגש מבוסס AI</h2>
-            <p className="text-slate-500 text-sm font-medium">מפגש קבוצתי: תמיכה רגשית - מפגש {num}</p>
+            <p className="text-slate-500 text-sm font-medium">קבוצה: {groupName} - מפגש {num}</p>
         </div>
 
         {/* כרטיסיית תובנות */}

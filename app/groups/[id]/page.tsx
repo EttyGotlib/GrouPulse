@@ -20,6 +20,11 @@ export default function GroupDetailsPage() {
         if (result.success) {
           setGroupData(result.group);
           setParticipants(result.participants);
+
+           
+          // הוספה: שומר את נתוני הקבוצה כדי שדפים אחרים (כמו סיכום ה-AI) יוכלו לגשת אליהם
+          localStorage.setItem(`group_data_${id}`, JSON.stringify(result.group));
+          // ----------------------------
         }
         setLoading(false);
       }

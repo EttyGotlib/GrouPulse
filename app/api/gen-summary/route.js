@@ -12,16 +12,52 @@ export async function POST(req) {
       apiKey: process.env.GEMINI_API_KEY,
     });
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: prompt,
-    });
+    // פונקציית retry
+    async function generateWithRetry(retries = 2) {
+      try {
+        return await ai.models.generateContent({
+          model: "gemini-flash-latest",
+          contents: prompt,
+        }); // OR
+              //const response = await ai.models.generateContent({
+              //model: "gemini-2.5-flash",
+              //contents: prompt,
+              // });
+        } catch (err) {
+            if (err.status === 503 && retries > 0) {
+              await new Promise(r => setTimeout(r, 1000));
+              return generateWithRetry(retries - 1);
+            }
+            throw err;
+       }
+    }
+
+    const response = await generateWithRetry();
 
     return Response.json({
       text: response.text,
     });
   } catch (error) {
-    console.error(error);
-    return Response.json({ error: "AI_ERROR" }, { status: 500 });
+    console.error("AI ERROR:", error);
+
+    // 💥 טיפול חכם בשגיאות
+    if (error.status === 429) {
+      return Response.json(
+        { error: "QUOTA_EXCEEDED" },
+        { status: 429 }
+      );
+    }
+
+    if (error.status === 503) {
+      return Response.json(
+        { error: "MODEL_BUSY" },
+        { status: 503 }
+      );
+    }
+
+    return Response.json(
+      { error: "AI_ERROR" },
+      { status: 500 }
+    );
   }
 }
