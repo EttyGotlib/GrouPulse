@@ -33,13 +33,18 @@ export default function AiSummaryPage() {
     setIsMounted(true);
     
     const fetchAiSummary = async () => {
-      if (fetchedRef.current) return;
+      //if (fetchedRef.current) return;
       if (!id || !num) return;
 
       setIsLoading(true);
       try {
         const rawDataString = localStorage.getItem(logStorageKey);
-        
+        if (!rawDataString) {
+          setHasData(false);
+          setIsLoading(false);
+          return;
+        }// הוספה
+
         // --- 1. שליפת שם הקבוצה (תמיד קורה ראשון) ---
         const groupDataRaw = localStorage.getItem(groupDataKey);
         let currentGroupName = "קבוצה כללית";
@@ -49,11 +54,14 @@ export default function AiSummaryPage() {
         }
         setGroupName(currentGroupName); // עדכון ה-State לתצוגה בדף
         // ------------------------------------------
-
+       
         // --- 2. בדיקת Cache ---
-        const cachedAiData = localStorage.getItem(`ai_cache_${id}_${num}`);
-        if (cachedAiData && rawDataString) {
+        const cacheKey = `ai_cache_${id}_${num}`;
+        const cachedAiData = localStorage.getItem(cacheKey);
+        
+        if (cachedAiData) {
           const parsedCache = JSON.parse(cachedAiData);
+
           if (parsedCache.sourceData === rawDataString) {
             setAiData(parsedCache.aiResult);
             setIsLoading(false);
@@ -61,14 +69,17 @@ export default function AiSummaryPage() {
           }
         }
 
-        if (!rawDataString) {
-          setHasData(false);
-          setIsLoading(false);
-          return;
+        // --- 🔥 מניעת spam (קריאות מהירות) ---
+        const lastCallKey = `ai_last_call_${id}_${num}`;
+        const lastCall = localStorage.getItem(lastCallKey);
+
+        if (lastCall && Date.now() - Number(lastCall) < 30000) {
+          throw new Error("נא להמתין כמה שניות לפני ניסיון נוסף");
         }
 
-        // סימון שהתחלנו שליפה
-        fetchedRef.current = true;
+        localStorage.setItem(lastCallKey, Date.now().toString());
+
+        setIsLoading(true);
       
         const response = await fetch('/api/gen-summary', {
           method: 'POST',
@@ -120,31 +131,44 @@ export default function AiSummaryPage() {
       
         if (result.text) {
           try {
-            // ניקוי תגיות Markdown במידה וה-AI הוסיף אותן
+            // 1. ניקוי תגיות Markdown במידה וה-AI הוסיף אותן
             const cleanJson = result.text.replace(/```json|```/g, "").trim();
             let parsedData: { insights: string[]; cohesionScore: number; dynamicsDescription: string; individualHighlights: any[]; };
 
             try {
-            parsedData = JSON.parse(cleanJson);
-            } catch {
-            console.error("Fallback triggered:", cleanJson);
+              // 2. ניסיון לפענח את ה-JSON
+              parsedData = JSON.parse(cleanJson);
+              
+              // 3. עדכון ה-State של הדף
+              setAiData(parsedData);
 
-            parsedData = {
-                insights: ["שגיאה בניתוח הנתונים"],
+              // 4. שמירה ב-Cache עבור דף האנליטיקה (קורה רק אם ה-JSON תקין)
+              const cacheToSave = {
+                sourceData: rawDataString,
+                aiResult: parsedData
+              };
+              localStorage.setItem(`ai_cache_${id}_${num}`, JSON.stringify(cacheToSave));
+              
+            } catch (innerError) {
+              // מקרה שה-JSON לא תקין - יוצר נתוני Fallback זמניים
+              console.error("JSON Parse Error, using fallback:", cleanJson);
+              parsedData = {
+                insights: ["שגיאה בניתוח הנתונים מה-AI"],
                 cohesionScore: 0,
-                dynamicsDescription: "לא ניתן היה לנתח את הנתונים",
+                dynamicsDescription: "לא ניתן היה לנתח את הנתונים במבנה תקין",
                 individualHighlights: []
-            };
+              };
+              setAiData(parsedData);
+              // לא שומרים ב-Cache במקרה של שגיאה כדי שנוכל לנסות שוב בריענון
             }
-            setAiData(parsedData);
-          } catch (parseErr) {
-            console.error("JSON Parse Error:", result.text);
+
+          } catch (err) {
+            console.error("General parsing error:", err);
             throw new Error("התקבלה תשובה לא תקינה מה-AI");
           }
         } else {
           throw new Error("לא התקבל טקסט מה-AI");
         }
-      
       } catch (error: any) {
         setErrorMsg(error.message || "שגיאה בטעינת הנתונים");
         setFallbackActive(true);

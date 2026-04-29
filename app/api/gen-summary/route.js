@@ -21,14 +21,15 @@ export async function POST(req) {
         }); // OR
               //const response = await ai.models.generateContent({
               //model: "gemini-2.5-flash",
+              //OR model "gemini-flash-latest"
               //contents: prompt,
               // });
-        } catch (err) {
-            if (err.status === 503 && retries > 0) {
-              await new Promise(r => setTimeout(r, 1000));
-              return generateWithRetry(retries - 1);
-            }
-            throw err;
+      } catch (err) {
+        if (err.status === 503 && retries > 0) {
+          await new Promise(r => setTimeout(r, 1000));
+          return generateWithRetry(retries - 1);
+        }
+        throw err;
        }
     }
 
