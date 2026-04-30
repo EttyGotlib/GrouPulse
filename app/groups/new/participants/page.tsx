@@ -1,10 +1,13 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { addSingleParticipant } from '../../../../lib/api';
 
 export default function AddParticipantPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const groupId = searchParams.get('groupId');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState('');
 
@@ -46,14 +49,28 @@ export default function AddParticipantPage() {
     return true;
   };
 
-  const handleAddParticipant = () => {
-    if (!validateForm()) return;
-
-    const existing = JSON.parse(localStorage.getItem('temp_participants') || '[]');
-    const updated = [...existing, { fullName, idNumber, email, phone }];
-    localStorage.setItem('temp_participants', JSON.stringify(updated));
+  const handleAddParticipant = async () => {
     
-    router.back();
+  
+    if (!validateForm()) return;
+  
+    if (groupId) {
+      // --- הוספה לקבוצה קיימת דרך ה-API ---
+      const result = await addSingleParticipant(groupId, { fullName, idNumber, email, phone });
+      
+      if (result.success) {
+        router.push(`/groups/${groupId}`); // חזרה לדף הקבוצה
+        router.refresh(); // רענון כדי לראות את המשתתף החדש מיד
+      } else {
+        alert('שגיאה בשמירה: ' + result.error);
+      }
+    } else {
+      
+      const existing = JSON.parse(localStorage.getItem('temp_participants') || '[]');
+      const updated = [...existing, { fullName, idNumber, email, phone }];
+      localStorage.setItem('temp_participants', JSON.stringify(updated));
+      router.back();
+    }
   };
 
   return (

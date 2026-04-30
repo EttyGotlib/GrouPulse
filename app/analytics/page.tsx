@@ -132,7 +132,9 @@ function AnalyticsContent() {
           </div>
           <h1 className="font-bold text-[#003643] text-lg">מרכז אנליטיקה</h1>
         </div>
-        <button onClick={() => router.push('/')} className="material-symbols-outlined text-[#003643] p-2 hover:bg-slate-50 rounded-full transition-colors">home</button>
+        <button onClick={() => router.push('/dashboard')} 
+          className="material-symbols-outlined text-[#003643] p-2 hover:bg-slate-50 rounded-full transition-colors">home
+        </button>
       </header>
 
       <main className="max-w-2xl mx-auto px-6 pt-6 space-y-6">

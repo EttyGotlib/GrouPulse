@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { getGroupDetails } from '../../../../../lib/api';
 
 export default function SessionLogPage() {
   const router = useRouter();
@@ -16,29 +17,61 @@ export default function SessionLogPage() {
   const [engagement, setEngagement] = useState('');
   const [atmosphere, setAtmosphere] = useState('');
   
-  // State לנוכחות - אתחול עם רשימת המשתתפים
-// State לנוכחות - אתחול עם רשימת המשתתפים (הוספנו participationLevel)
-const [attendance, setAttendance] = useState([
-  { name: 'אלון ר.', present: false, notes: '', participationLevel: 0 },
-  { name: 'מיכל כ.', present: false, notes: '', participationLevel: 0 },
-  { name: 'יואב ל.', present: false, notes: '', participationLevel: 0 },
-  { name: 'דנה פ.', present: false, notes: '', participationLevel: 0 }
-]);
+// 1. אתחול ה-attendance כרשימה ריקה
+const [attendance, setAttendance] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
 
-  // 1. טעינת הנתונים ברגע שהדף עולה
-  useEffect(() => {
-    const savedData = localStorage.getItem(storageKey);
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      setLogText(parsed.logText || '');
-      setCohesion(parsed.cohesion || '');
-      setEngagement(parsed.engagement || '');
-      setAtmosphere(parsed.atmosphere || ''); 
-      if (parsed.attendance) {
-        setAttendance(parsed.attendance);
+useEffect(() => {
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      
+      // שליפת המשתתפים האמיתיים מהמסד
+      const result = await getGroupDetails(id);
+      let participantsFromDB = [];
+      
+      if (result.success && result.participants) {
+        // מיפוי המשתתפים למבנה הנתונים של הדף
+        participantsFromDB = result.participants.map((p: any) => ({
+          id: p.id, // חשוב לשמור ID לזיהוי
+          name: p.name_or_code,
+          present: false,
+          notes: '',
+          participationLevel: 0
+        }));
       }
+
+      // בדיקה אם יש נתונים שמורים ב-localStorage (טיוטה)
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        setLogText(parsed.logText || '');
+        setCohesion(parsed.cohesion || '');
+        setEngagement(parsed.engagement || '');
+        setAtmosphere(parsed.atmosphere || '');
+        
+        if (parsed.attendance && parsed.attendance.length > 0) {
+          // מיזוג: מעדיפים את הנתונים השמורים (נוכחות/הערות) עבור המשתתפים הקיימים ב-DB
+          const mergedAttendance = participantsFromDB.map((dbPerson: any) => {
+            const savedPerson = parsed.attendance.find((sp: any) => sp.name === dbPerson.name || sp.id === dbPerson.id);
+            return savedPerson ? savedPerson : dbPerson;
+          });
+          setAttendance(mergedAttendance);
+        } else {
+          setAttendance(participantsFromDB);
+        }
+      } else {
+        setAttendance(participantsFromDB);
+      }
+    } catch (error) {
+      console.error("Failed to load participants:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [storageKey]);
+  };
+
+  if (id) loadInitialData();
+}, [id, storageKey]);
 
   // 2. פונקציית עזר לשמירה אוטומטית
   const saveToLocal = (
