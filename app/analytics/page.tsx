@@ -15,6 +15,16 @@ export default function AnalyticsPage() {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f] print:bg-white print:pb-0">
       
+      {/* התיקון הקריטי להורדת הגרפים עם צבעים */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        @media print {
+          * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+          }
+        }
+      ` }} />
+      
       {/* Header Bar - מוסתר בזמן הדפסה */}
       <header className="bg-white px-6 py-6 flex flex-row-reverse justify-between items-center border-b border-slate-50 sticky top-0 z-50 print:hidden">
         <div className="flex items-center gap-3">
@@ -68,9 +78,9 @@ export default function AnalyticsPage() {
                     { h: '75%', label: 'מפגש אחרון' }
                 ].map((bar, i) => (
                     <div key={i} className="flex flex-col items-center gap-3 w-12">
-                        <div className="w-full bg-[#f1f4f8] rounded-full h-32 relative overflow-hidden print:border print:border-slate-100">
+                        <div className="w-full bg-[#f1f4f8] rounded-full h-32 relative overflow-hidden">
                             <div 
-                                className={`absolute bottom-0 w-full rounded-full transition-all duration-1000 ${bar.active ? 'bg-[#32666d]/40' : 'bg-[#b7ecf3]'}`}
+                                className={`absolute bottom-0 w-full rounded-full transition-all duration-1000 ${bar.active ? 'bg-[#32666d]' : 'bg-[#b7ecf3]'}`}
                                 style={{ height: bar.h }}
                             ></div>
                         </div>
@@ -82,11 +92,11 @@ export default function AnalyticsPage() {
 
         {/* לכידות קבוצתית */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="bg-[#003643] rounded-[32px] p-8 text-white flex flex-col items-center justify-center h-64 shadow-lg print:border print:border-slate-800">
+            <div className="bg-[#003643] rounded-[32px] p-8 text-white flex flex-col items-center justify-center h-64 shadow-lg print:bg-[#003643]">
                 <div className="relative w-32 h-32 flex items-center justify-center">
                     <svg className="w-full h-full -rotate-90">
                         <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
-                        <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" strokeDasharray="364" strokeDashoffset="44" className="text-[#b7ecf3]" />
+                        <circle cx="64" cy="64" r="58" stroke="#b7ecf3" strokeWidth="8" fill="transparent" strokeDasharray="364" strokeDashoffset="44" />
                     </svg>
                     <div className="absolute flex flex-col items-center">
                         <span className="text-3xl font-black">88%</span>
@@ -117,9 +127,9 @@ export default function AnalyticsPage() {
             
             <div className="space-y-6">
                 {[
-                    { name: 'נועם אברהמי', score: 92, color: 'bg-[#003643]' },
-                    { name: 'מיכל כהן', score: 65, color: 'bg-[#32666d]' },
-                    { name: 'יונתן לוי', score: 48, color: 'bg-red-400' },
+                    { name: 'נועם אברהמי', score: 92, color: '#003643' },
+                    { name: 'מיכל כהן', score: 65, color: '#32666d' },
+                    { name: 'יונתן לוי', score: 48, color: '#f87171' },
                 ].map((user, i) => (
                     <div key={i} className="space-y-2">
                         <div className="flex justify-between items-center">
@@ -127,7 +137,7 @@ export default function AnalyticsPage() {
                             <span className="text-xs font-bold text-slate-400">{user.score}% מעורבות</span>
                         </div>
                         <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden border border-slate-50">
-                            <div className={`h-full ${user.color} rounded-full`} style={{ width: `${user.score}%` }}></div>
+                            <div className={`h-full rounded-full`} style={{ width: `${user.score}%`, backgroundColor: user.color }}></div>
                         </div>
                     </div>
                 ))}
