@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getGroupDetails } from '../../lib/api';
+import { getGroupDetails, getDashboardData } from '../../lib/api';
 
 function AnalyticsContent() {
   const router = useRouter();
@@ -35,30 +35,54 @@ function AnalyticsContent() {
       setLoading(true);
       setError('');
 
-      // 1. טעינת רשימת קבוצות
-      const groups: {id: string, name: string}[] = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        // בדיקה שהמפתח שייך לנתוני קבוצה
-      if (key && key.startsWith('group_data_')) {
-          try {
-            const rawData = localStorage.getItem(key);
-            if (rawData) {
-              const parsedData = JSON.parse(rawData);
-              // חילוץ ה-ID מהמפתח (מסיר את התחילית group_data_)
-              const groupId = key.replace('group_data_', '');
-              
-              groups.push({ 
-                id: groupId, 
-                name: parsedData.name || "קבוצה ללא שם" 
-              });
-            }
-          } catch (e) {
-            console.error("שגיאה בטעינת קבוצה:", key, e);
+      // 1. טעינת רשימת קבוצות - שילוב של שרת ו-LocalStorage
+      const fetchGroups = async () => {
+        let serverGroups: {id: string, name: string}[] = [];
+        let localGroups: {id: string, name: string}[] = [];
+
+        // א. שליפה מה-LocalStorage (מה שהיה לך קודם)
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('group_data_')) {
+            try {
+              const rawData = localStorage.getItem(key);
+              if (rawData) {
+                const parsedData = JSON.parse(rawData);
+                localGroups.push({ 
+                  id: key.replace('group_data_', ''), 
+                  name: parsedData.name || "קבוצה ללא שם" 
+                });
+              }
+            } catch (e) { console.error(e); }
           }
         }
-      }
-      setAllGroups(groups);
+
+        // ב. שליפה מהשרת (הקבוצות החדשות)
+        try {
+          const response = await getDashboardData();
+          if (response && response.groups) {
+            serverGroups = response.groups.map((g: any) => ({
+              id: g.id.toString(),
+              name: g.name
+            }));
+          }
+        } catch (e) {
+          console.error("שגיאה במשיכת קבוצות מהשרת:", e);
+        }
+
+        // ג. מיזוג רשימות ומניעת כפילויות (לפי ID)
+        const combined = [...serverGroups];
+        localGroups.forEach(localG => {
+          if (!combined.find(serverG => serverG.id === localG.id)) {
+            combined.push(localG);
+          }
+        });
+
+        setAllGroups(combined);
+      };
+
+      fetchGroups();
+            
 
       if (!id) {
         setLoading(false);
@@ -66,17 +90,19 @@ function AnalyticsContent() {
       }
 
       // 2. מציאת שם הקבוצה הנבחרת
-      const groupRaw = localStorage.getItem(`group_data_${id}`);
-      if (groupRaw) {
-        try {
-          const parsed = JSON.parse(groupRaw);
-          if (parsed?.name) setGroupName(parsed.name);
-        } catch (e) {
-          console.error("שגיאה בקריאת נתוני קבוצה מקומיים:", e);
-        }
-      }
+      //const groupRaw = localStorage.getItem(`group_data_${id}`);
+      //if (groupRaw) {
+        //try {
+          //const parsed = JSON.parse(groupRaw);
+          //if (parsed?.name) setGroupName(parsed.name);
+        //} catch (e) {
+          //console.error("שגיאה בקריאת נתוני קבוצה מקומיים:", e);
+        //}
+      //}
+
 
       // 2. שליפת נתוני הקבוצה והמשתתפים המעודכנים מ-Supabase
+    // שליפת נתוני הקבוצה והמשתתפים המעודכנים מ-Supabase
     let currentParticipantNames: string[] | null = null;
     let totalSessionsCount = 0;
     try {
@@ -205,6 +231,7 @@ function AnalyticsContent() {
       }
     });
 
+    //רק חסר לעדכן ניתוח AI
     const avgEngagement = engagementSessionsCount > 0
       ? Math.round(totalEngagementComposite / engagementSessionsCount)
       : 0;
@@ -217,7 +244,9 @@ function AnalyticsContent() {
         ? 'תומכת'
         : avgAtmosphereScore >= 45
           ? 'מאוזנת'
-          : 'מתוחה';
+          : avgAtmosphereScore == 0
+          ? ' '
+          : 'מתוחה'
     const engagementTrend = engagementSessionsCount > 0
       ? (lastEngagementComposite > avgEngagement ? 'up' : lastEngagementComposite < avgEngagement ? 'down' : 'stable')
       : 'stable';
@@ -226,14 +255,14 @@ function AnalyticsContent() {
         ? "נשמרת מעורבות קבוצתית עקבית ורמת השתתפות פעילה ברוב המפגשים."
         : avgEngagement >= 55
           ? "קיים בסיס יציב לשיח קבוצתי, עם נוכחות ומעורבות סדירה בחלק ניכר מהמפגשים."
-          : "נשמרת רציפות הגעה בסיסית, ומהווה תשתית להמשך חיזוק התהליך הקבוצתי.";
+          : "חסר נתונים לניתוח.";
     const strengthenText =
       aiInsightsPool.length > 0
         ? aiInsightsPool[0]
-        : "כדאי לחזק פתיחה מובנית בכל מפגש כדי להעלות השתתפות מוקדמת של כלל המשתתפים.";
+        : "חסר נתונים לניתוח.";
     const improveText =
       avgAtmosphereScore < 45
-        ? "האווירה המתוחה החוזרת מצביעה על צורך בכלי ויסות קבוצתיים לפני העמקה רגשית."
+        ? "חסר נתונים לניתוח"
         : avgEngagement < 60
           ? "נדרש לשפר חלוקת זמן דיבור ולעודד משתתפים שקטים להביע עמדה באופן עקבי."
           : "מומלץ לשמר ניטור שיטתי של השתתפות אישית כדי למנוע ירידה הדרגתית במעורבות.";
