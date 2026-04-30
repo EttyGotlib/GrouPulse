@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { getGroupDetails } from '../../lib/api';
 
 function AnalyticsContent() {
   const router = useRouter();
@@ -10,58 +11,105 @@ function AnalyticsContent() {
   
   const [allGroups, setAllGroups] = useState<{id: string, name: string}[]>([]);
   const [groupName, setGroupName] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [selectedBar, setSelectedBar] = useState<string | null>(null);
   const [stats, setStats] = useState({
     avgCohesion: 0,
+    lastCohesion: 0,
+    cohesionDeltaPercent: 0,
     avgEngagement: 0,
     atmosphere: "טובה",
+    patternInsights: {
+      preserve: "אין מספיק נתונים לקביעה.",
+      strengthen: "נדרש עוד תיעוד כדי לזהות דפוס חיזוק.",
+      improve: "נדרש עוד תיעוד כדי לזהות דפוס לשיפור."
+    },
     sessionsData: [] as any[],
     participantStats: [] as any[],
     trends: { cohesion: 'stable', engagement: 'stable', atmosphere: 'stable' }
   });
 
   useEffect(() => {
-    // 1. טעינת רשימת קבוצות
-    const groups: {id: string, name: string}[] = [];
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      // בדיקה שהמפתח שייך לנתוני קבוצה
-    if (key && key.startsWith('group_data_')) {
-        try {
-          const rawData = localStorage.getItem(key);
-          if (rawData) {
-            const parsedData = JSON.parse(rawData);
-            // חילוץ ה-ID מהמפתח (מסיר את התחילית group_data_)
-            const groupId = key.replace('group_data_', '');
-            
-            groups.push({ 
-              id: groupId, 
-              name: parsedData.name || "קבוצה ללא שם" 
-            });
+    const fetchAndProcessData = async () => {
+      setLoading(true);
+      setError('');
+
+      // 1. טעינת רשימת קבוצות
+      const groups: {id: string, name: string}[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        // בדיקה שהמפתח שייך לנתוני קבוצה
+      if (key && key.startsWith('group_data_')) {
+          try {
+            const rawData = localStorage.getItem(key);
+            if (rawData) {
+              const parsedData = JSON.parse(rawData);
+              // חילוץ ה-ID מהמפתח (מסיר את התחילית group_data_)
+              const groupId = key.replace('group_data_', '');
+              
+              groups.push({ 
+                id: groupId, 
+                name: parsedData.name || "קבוצה ללא שם" 
+              });
+            }
+          } catch (e) {
+            console.error("שגיאה בטעינת קבוצה:", key, e);
           }
-        } catch (e) {
-          console.error("שגיאה בטעינת קבוצה:", key, e);
         }
       }
-    }
-    setAllGroups(groups);
+      setAllGroups(groups);
 
-    if (!id) return;
+      if (!id) {
+        setLoading(false);
+        return;
+      }
 
-    // 2. מציאת שם הקבוצה הנבחרת
-    const groupRaw = localStorage.getItem(`group_data_${id}`);
-    let totalSessionsDefined = 0;
-    if (groupRaw) {
-      const parsed = JSON.parse(groupRaw);
-      setGroupName(parsed.name);
-      // לוקח את הנתון המדויק מהגדרת הקבוצה
-      totalSessionsDefined = parseInt(parsed.sessionsCount || parsed.totalSessions || "0");
+      // 2. מציאת שם הקבוצה הנבחרת
+      const groupRaw = localStorage.getItem(`group_data_${id}`);
+      if (groupRaw) {
+        try {
+          const parsed = JSON.parse(groupRaw);
+          if (parsed?.name) setGroupName(parsed.name);
+        } catch (e) {
+          console.error("שגיאה בקריאת נתוני קבוצה מקומיים:", e);
+        }
+      }
+
+      // 2. שליפת נתוני הקבוצה והמשתתפים המעודכנים מ-Supabase
+    let currentParticipantNames: string[] | null = null;
+    let totalSessionsCount = 0;
+    try {
+      const groupDetails = await getGroupDetails(id);
+      if (groupDetails.success) {
+        setGroupName(groupDetails.group?.name || '');
+        currentParticipantNames = (groupDetails.participants || []).map((p: any) => p.name_or_code).filter(Boolean);
+        totalSessionsCount = Number(groupDetails.group?.session_count || 0);
+      } else {
+        setError('לא הצלחנו למשוך נתונים עדכניים מהשרת. מוצגים נתונים מקומיים אם קיימים.');
+      }
+    } catch (e) {
+      console.error("שגיאה בשליפת נתוני קבוצה:", e);
+      setError('אירעה שגיאה בטעינת הנתונים מהשרת.');
     }
 
     // 3. איסוף נתונים מכל סיכומי ה-AI של הקבוצה
     let totalCohesion = 0;
     const sessionsFound: any[] = [];
-    const participantsMap: Record<string, { sessions: number, totalScore: number }> = {};
+    const participantsPresenceMap: Record<string, { presentCount: number }> = {};
+    const allowedParticipantNames = currentParticipantNames ? new Set(currentParticipantNames) : null;
+    if (allowedParticipantNames) {
+      allowedParticipantNames.forEach((name) => {
+        participantsPresenceMap[name] = { presentCount: 0 };
+      });
+    }
+    let heldSessionsCount = 0;
+    let totalEngagementComposite = 0;
+    let engagementSessionsCount = 0;
+    let lastEngagementComposite = 0;
+    let totalAtmosphereScore = 0;
+    let atmosphereSessionsCount = 0;
+    const aiInsightsPool: string[] = [];
 
     Object.keys(localStorage).forEach(key => {
       if (key.includes('ai_cache') && key.includes(id)) {
@@ -71,48 +119,194 @@ function AnalyticsContent() {
           if (ai && typeof ai.cohesionScore === 'number') {
             const sessionNum = key.split('_').pop();
             sessionsFound.push({
-              num: parseInt(sessionNum || "0"),
+              num: parseInt(sessionNum || "0", 10),
               label: `מפגש ${sessionNum}`,
               score: ai.cohesionScore,
               h: `${ai.cohesionScore}%`
             });
             totalCohesion += ai.cohesionScore;
-
-            if (Array.isArray(ai.individualHighlights)) {
-              ai.individualHighlights.forEach((p: any) => {
-                if (!participantsMap[p.name]) participantsMap[p.name] = { sessions: 0, totalScore: 0 };
-                participantsMap[p.name].sessions += 1;
-                // הערכת מעורבות לפי טקסט (לוגיקה בסיסית לצורך ההמחשה)
-                participantsMap[p.name].totalScore += (p.text.length > 20 ? 90 : 70);
+            if (Array.isArray(ai.insights)) {
+              ai.insights.forEach((insight: any) => {
+                if (typeof insight === 'string' && insight.trim()) {
+                  aiInsightsPool.push(insight.trim());
+                }
               });
             }
+
           }
-        } catch (e) {}
+        } catch (e) {
+          console.warn("שגיאה בקריאת ai_cache:", key, e);
+        }
       }
     });
 
+    // 4. חישוב נוכחות אמיתית לפי יומני מפגש: נוכחים בפועל / מפגשים שהתקיימו
+    Object.keys(localStorage).forEach((key) => {
+      if (!key.startsWith(`session_log_${id}_`)) return;
+      try {
+        const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+        const atmosphereLabel = parsed?.atmosphere;
+        const atmosphereScore = atmosphereLabel === 'תומכת'
+          ? 100
+          : atmosphereLabel === 'ניטרלית'
+            ? 60
+            : atmosphereLabel === 'מתוחה'
+              ? 20
+              : null;
+        if (atmosphereScore !== null) {
+          totalAtmosphereScore += atmosphereScore;
+          atmosphereSessionsCount += 1;
+        }
+
+        const attendanceList = Array.isArray(parsed?.attendance) ? parsed.attendance : [];
+        if (attendanceList.length === 0) return;
+
+        heldSessionsCount += 1;
+        const engagementLabel = parsed?.engagement;
+        const engagementFromLabel = engagementLabel === 'אינטנסיבית'
+          ? 100
+          : engagementLabel === 'מאוזנת'
+            ? 70
+            : engagementLabel === 'פאסיבית'
+              ? 40
+              : 0;
+
+        const presentParticipants = attendanceList.filter((person: any) => person?.present === true);
+        const engagementFromParticipants = presentParticipants.length > 0
+          ? Math.round(
+              presentParticipants.reduce((sum: number, person: any) => {
+                const participationLevel = Number(person?.participationLevel || 0);
+                const levelScore = Math.max(0, Math.min(5, participationLevel)) * 20;
+                const noteLength = (person?.notes || '').trim().length;
+                const notesBonus = noteLength > 15 ? 10 : noteLength > 0 ? 5 : 0;
+                return sum + Math.min(100, levelScore + notesBonus);
+              }, 0) / presentParticipants.length
+            )
+          : 0;
+
+        const sessionEngagementScore = Math.round((engagementFromLabel * 0.5) + (engagementFromParticipants * 0.5));
+        totalEngagementComposite += sessionEngagementScore;
+        engagementSessionsCount += 1;
+        lastEngagementComposite = sessionEngagementScore;
+
+        attendanceList.forEach((person: any) => {
+          const participantName = person?.name;
+          if (!participantName) return;
+          if (allowedParticipantNames && !allowedParticipantNames.has(participantName)) return;
+          if (!participantsPresenceMap[participantName]) {
+            participantsPresenceMap[participantName] = { presentCount: 0 };
+          }
+          if (person.present === true) {
+            participantsPresenceMap[participantName].presentCount += 1;
+          }
+        });
+      } catch (e) {
+        console.warn("שגיאה בקריאת session_log:", key, e);
+      }
+    });
+
+    const avgEngagement = engagementSessionsCount > 0
+      ? Math.round(totalEngagementComposite / engagementSessionsCount)
+      : 0;
+    const avgAtmosphereScore = atmosphereSessionsCount > 0
+      ? Math.round(totalAtmosphereScore / atmosphereSessionsCount)
+      : 0;
+    const computedAtmosphere = avgAtmosphereScore >= 85
+      ? 'תומכת מאוד'
+      : avgAtmosphereScore >= 65
+        ? 'תומכת'
+        : avgAtmosphereScore >= 45
+          ? 'מאוזנת'
+          : 'מתוחה';
+    const engagementTrend = engagementSessionsCount > 0
+      ? (lastEngagementComposite > avgEngagement ? 'up' : lastEngagementComposite < avgEngagement ? 'down' : 'stable')
+      : 'stable';
+    const preserveText =
+      avgEngagement >= 75
+        ? "נשמרת מעורבות קבוצתית עקבית ורמת השתתפות פעילה ברוב המפגשים."
+        : avgEngagement >= 55
+          ? "קיים בסיס יציב לשיח קבוצתי, עם נוכחות ומעורבות סדירה בחלק ניכר מהמפגשים."
+          : "נשמרת רציפות הגעה בסיסית, ומהווה תשתית להמשך חיזוק התהליך הקבוצתי.";
+    const strengthenText =
+      aiInsightsPool.length > 0
+        ? aiInsightsPool[0]
+        : "כדאי לחזק פתיחה מובנית בכל מפגש כדי להעלות השתתפות מוקדמת של כלל המשתתפים.";
+    const improveText =
+      avgAtmosphereScore < 45
+        ? "האווירה המתוחה החוזרת מצביעה על צורך בכלי ויסות קבוצתיים לפני העמקה רגשית."
+        : avgEngagement < 60
+          ? "נדרש לשפר חלוקת זמן דיבור ולעודד משתתפים שקטים להביע עמדה באופן עקבי."
+          : "מומלץ לשמר ניטור שיטתי של השתתפות אישית כדי למנוע ירידה הדרגתית במעורבות.";
+
     if (sessionsFound.length > 0) {
       sessionsFound.sort((a, b) => a.num - b.num);
-      const last12Sessions = sessionsFound.slice(-12);
+      const documentedSessionsMap: Record<number, number> = {};
+      sessionsFound.forEach((s) => {
+        documentedSessionsMap[s.num] = s.score;
+      });
+      const fallbackMaxSession = sessionsFound.length > 0
+        ? Math.max(...sessionsFound.map((s) => s.num))
+        : 0;
+      const totalColumns = Math.max(totalSessionsCount, fallbackMaxSession);
+      const allSessionsData = Array.from({ length: totalColumns }, (_, i) => {
+        const sessionNumber = i + 1;
+        const score = documentedSessionsMap[sessionNumber];
+        return {
+          num: sessionNumber,
+          label: `מפגש ${sessionNumber}`,
+          score: typeof score === 'number' ? score : null,
+          h: typeof score === 'number' ? `${score}%` : '0%'
+        };
+      });
       const avgCohesion = Math.round(totalCohesion / sessionsFound.length);
       
-      // חישוב מגמה (פשוט: השוואת המפגש האחרון לממוצע)
+      // חישוב מגמה והשוואת אחוז שינוי של המפגש האחרון מול ממוצע כל המפגשים
       const lastScore = sessionsFound[sessionsFound.length - 1].score;
       const cohesionTrend = lastScore > avgCohesion ? 'up' : lastScore < avgCohesion ? 'down' : 'stable';
+      const cohesionDeltaPercent = avgCohesion > 0
+        ? Math.round(((lastScore - avgCohesion) / avgCohesion) * 100)
+        : 0;
 
       setStats({
         avgCohesion,
-        avgEngagement: 85, // כרגע קבוע, ניתן לחשב מתוך ה-API בעתיד
-        atmosphere: "חיובית ומקדמת",
-        sessionsData: last12Sessions,
-        participantStats: Object.entries(participantsMap).map(([name, data]) => ({
+        lastCohesion: lastScore,
+        cohesionDeltaPercent,
+        avgEngagement,
+        atmosphere: computedAtmosphere,
+        patternInsights: {
+          preserve: preserveText,
+          strengthen: strengthenText,
+          improve: improveText
+        },
+        sessionsData: allSessionsData,
+        participantStats: Object.entries(participantsPresenceMap).map(([name, data]) => ({
           name,
-          score: Math.round(data.totalScore / data.sessions),
-          attendance: Math.round((data.sessions / sessionsFound.length) * 100)
+          score: heldSessionsCount > 0 ? Math.round((data.presentCount / heldSessionsCount) * 100) : 0,
+          attendance: heldSessionsCount > 0 ? Math.round((data.presentCount / heldSessionsCount) * 100) : 0
         })),
-        trends: { cohesion: cohesionTrend, engagement: 'up', atmosphere: 'stable' }
+        trends: { cohesion: cohesionTrend, engagement: engagementTrend, atmosphere: 'stable' }
       });
+    } else {
+      setStats((prev) => ({
+        ...prev,
+        avgEngagement,
+        atmosphere: computedAtmosphere,
+        patternInsights: {
+          preserve: preserveText,
+          strengthen: strengthenText,
+          improve: improveText
+        },
+        participantStats: Object.entries(participantsPresenceMap).map(([name, data]) => ({
+          name,
+          score: heldSessionsCount > 0 ? Math.round((data.presentCount / heldSessionsCount) * 100) : 0,
+          attendance: heldSessionsCount > 0 ? Math.round((data.presentCount / heldSessionsCount) * 100) : 0
+        })),
+        trends: { ...prev.trends, engagement: engagementTrend }
+      }));
     }
+    setLoading(false);
+    };
+    fetchAndProcessData();
   }, [id]);
 
   const TrendIcon = ({ type }: { type: string }) => {
@@ -138,6 +332,16 @@ function AnalyticsContent() {
       </header>
 
       <main className="max-w-2xl mx-auto px-6 pt-6 space-y-6">
+        {loading && (
+          <div className="bg-[#e6f4f7] text-[#003643] text-sm font-bold rounded-2xl p-4 text-center">
+            טוען נתוני אנליטיקה...
+          </div>
+        )}
+        {!!error && (
+          <div className="bg-amber-50 border border-amber-200 text-amber-800 text-sm rounded-2xl p-4 text-center">
+            {error}
+          </div>
+        )}
         
         {/* 1. כרטיסיית בחירת קבוצות */}
         <section className="bg-white rounded-[28px] p-4 shadow-sm border border-slate-50">
@@ -170,13 +374,13 @@ function AnalyticsContent() {
               </h3>
               
               <div className="text-sm font-bold opacity-90 mt-1 mb-8">
-                ניתוח מעורבות ב-({stats.sessionsData.filter(s => s.score).length}) המפגשים שהוזנו
+                ניתוח מעורבות ב-({stats.sessionsData.filter(s => typeof s.score === 'number').length}) המפגשים שהוזנו
               </div>
 
               <div className="flex justify-between items-end h-44 gap-2">
                 {stats.sessionsData.map((bar, i) => {
                     
-                  const isFilled = bar.score;
+                  const isFilled = typeof bar.score === 'number';
                   return (
                     <div key={i} className="flex flex-col items-center gap-3 flex-1 min-w-[20px]">
                       <div 
@@ -191,7 +395,7 @@ function AnalyticsContent() {
                                 ) : (
                                     /* עמודה שווה לאפס עבור NULL */
                                     <div 
-                                    className="absolute bottom-0 w-full rounded-t-lg transition-all duration-700s" 
+                                    className="absolute bottom-0 w-full rounded-t-lg transition-all duration-700" 
                                     style={{ height: '4px' }}
                                     />
                                 )}
@@ -213,11 +417,14 @@ function AnalyticsContent() {
             {/* שורה עליונה: אחוז ומגמה מול אייקון */}
             <div className="flex justify-between items-start">
                 <div className="text-right">
-                <div className="text-6xl font-black tracking-tighter">{stats.avgCohesion}%</div>
+                <div className="text-6xl font-black tracking-tighter">
+                  {stats.cohesionDeltaPercent > 0 ? '+' : ''}{stats.cohesionDeltaPercent}%
+                </div>
                 <div className="text-sm font-bold opacity-90 mt-1">
                     {stats.trends.cohesion === 'up' ? 'מגמת עלייה' : 
                     stats.trends.cohesion === 'down' ? 'מגמת ירידה' : 'מגמה יציבה'}
                 </div>
+                <div className="text-xs opacity-75 mt-1">שינוי מול ממוצע כל המפגשים</div>
                 </div>
                 
                 {/* אייקון קבוצה (דומה לתמונה) */}
@@ -238,7 +445,7 @@ function AnalyticsContent() {
             <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden mt-6">
                 <div 
                 className="h-full bg-[#b7ecf3] rounded-full transition-all duration-1000 ease-out"
-                style={{ width: `${stats.avgCohesion}%` }}
+                style={{ width: `${Math.max(0, Math.min(100, Math.abs(stats.cohesionDeltaPercent)))}%` }}
                 ></div>
             </div>
             </section>
@@ -251,11 +458,8 @@ function AnalyticsContent() {
                 <div className="text-2xl font-black text-[#003643]">{stats.avgEngagement}%</div>
               </div>
               
-              <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-50">
-                <div className="flex justify-between mb-2">
-                  <span className="material-symbols-outlined text-[#32666d]">mood</span>
-                  <TrendIcon type={stats.trends.atmosphere} />
-                </div>
+              <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-50 relative">
+                <span className="material-symbols-outlined text-[#32666d] absolute left-4 top-4">mood</span>
                 <h4 className="text-slate-400 text-[10px] font-bold uppercase">אווירה</h4>
                 <div className="text-sm font-black text-[#003643] truncate">{stats.atmosphere}</div>
               </div>
@@ -276,7 +480,7 @@ function AnalyticsContent() {
                         <span className="text-[10px] text-slate-400">{p.attendance}% נוכחות</span>
                       </div>
                       <div className="w-full bg-slate-50 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-[#32666d] h-full" style={{ width: `${p.score}%` }}></div>
+                        <div className="bg-[#32666d] h-full" style={{ width: `${Math.max(0, Math.min(100, p.attendance))}%` }}></div>
                       </div>
                     </div>
                   </div>
@@ -292,21 +496,21 @@ function AnalyticsContent() {
                   <span className="material-symbols-outlined text-green-600">verified</span>
                   <div>
                     <h4 className="font-bold text-green-900 text-sm">נקודות לשימור</h4>
-                    <p className="text-green-700/80 text-xs mt-1">רמת פתיחות גבוהה ושיח רגשי יציב לאורך המפגשים האחרונים.</p>
+                    <p className="text-green-700/80 text-xs mt-1">{stats.patternInsights.preserve}</p>
                   </div>
                 </div>
                 <div className="bg-blue-50/50 border border-blue-100 p-6 rounded-[28px] flex gap-4">
                   <span className="material-symbols-outlined text-blue-600">trending_up</span>
                   <div>
                     <h4 className="font-bold text-blue-900 text-sm">נקודות לחיזוק</h4>
-                    <p className="text-blue-700/80 text-xs mt-1">עידוד משתתפים פסיביים יותר לקחת חלק בשיח הקבוצתי.</p>
+                    <p className="text-blue-700/80 text-xs mt-1">{stats.patternInsights.strengthen}</p>
                   </div>
                 </div>
                 <div className="bg-amber-50/50 border border-amber-100 p-6 rounded-[28px] flex gap-4">
                   <span className="material-symbols-outlined text-amber-600">build</span>
                   <div>
                     <h4 className="font-bold text-amber-900 text-sm">נקודות לשיפור</h4>
-                    <p className="text-amber-700/80 text-xs mt-1">איזון זמני הדיבור בין המשתתפים הדומיננטיים לאחרים.</p>
+                    <p className="text-amber-700/80 text-xs mt-1">{stats.patternInsights.improve}</p>
                   </div>
                 </div>
               </div>
