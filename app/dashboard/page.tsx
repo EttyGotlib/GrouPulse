@@ -59,19 +59,16 @@ export default function DashboardPage() {
              </div>
              <span style={{ fontWeight: '800', color: '#003643', fontSize: '18px' }}>GrouPulse</span>
           </div>
-          <div style={{ display: 'flex', gap: '15px', color: '#003643' }}>
-            <span className="material-symbols-outlined cursor-pointer">notifications</span>
-            <span className="material-symbols-outlined cursor-pointer">search</span>
-          </div>
+          {/* האייקונים הוסרו מכאן */}
         </header>
 
         <main style={{ padding: '40px 20px 140px 20px' }}>
           <div style={{ textAlign: 'right', marginBottom: '40px' }}>
             <h1 style={{ fontSize: '36px', fontWeight: '800', color: '#003643', margin: 0 }}>
-              ברוך הבא, {userName}
+               ברוך הבא, {userName}
             </h1>
             <p style={{ color: '#41484b', marginTop: '8px', fontSize: '18px' }}>
-              המערכת מעודכנת עם נתוני הקבוצות שלך.
+               המערכת מעודכנת עם נתוני הקבוצות שלך.
             </p>
           </div>
 
@@ -80,12 +77,10 @@ export default function DashboardPage() {
               <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.8 }}>התראות ותזכורות</span>
               <span className="material-symbols-outlined" style={{ color: '#b7ecf3' }}>campaign</span>
             </div>
-            <p style={{ fontSize: '20px', textAlign: 'right', marginBottom: '25px', maxWidth: '600px', marginRight: '0', marginLeft: 'auto' }}>
+            <p style={{ fontSize: '20px', textAlign: 'right', marginBottom: '10px', maxWidth: '600px', marginRight: '0', marginLeft: 'auto' }}>
               {groups.length > 0 ? 'יש לך מפגשים קרובים השבוע. כדאי לעבור על רשימת המשתתפים.' : 'אין לך מפגשים מתוזמנים כרגע. צרי קבוצה חדשה כדי להתחיל את הפעילות.'}
             </p>
-            <button style={{ backgroundColor: '#bceafb', color: '#003643', border: 'none', padding: '12px 30px', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
-              לכל המפגשים
-            </button>
+            {/* הכפתור הוסר מכאן */}
           </div>
 
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#003643', textAlign: 'right', marginBottom: '20px' }}>מדדי פעילות</h2>
@@ -101,7 +96,7 @@ export default function DashboardPage() {
             <StatItem icon="edit_note" value={stats.missingNotes} label="תיעודים חסרים" isError={stats.missingNotes > 0} />
           </div>
 
-          {/* כאן הוסר החלק של "הקבוצות שלי" והקומפוננטה GroupCard */}
+          {/* כאן הוסר החלק של "הקבוצות שלי" והקומפוננטה GroupCard כפי שביקשת בעבר */}
         </main>
       </div>
     </div>

@@ -30,7 +30,7 @@ export default function GroupDetailsPage() {
   if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>טוען נתונים...</div>;
   if (!groupData) return <div style={{ textAlign: 'center', marginTop: '50px' }}>קבוצה לא נמצאה</div>;
 
-  const totalSessions = groupData.session_count || 12;
+  const totalSessions = Number(groupData.session_count) || 12;
   const sessions = Array.from({ length: totalSessions }, (_, i) => i + 1).reverse();
 
   return (
@@ -66,7 +66,7 @@ export default function GroupDetailsPage() {
             <h3 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '10px', borderBottom: '1px solid rgba(255,255,255,0.1)', paddingBottom: '10px' }}>לו"ז מפגשים</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span className="material-symbols-outlined" style={{ opacity: 0.8 }}>calendar_month</span>
-              <span style={{ fontSize: '16px' }}>{groupData.meeting_day || 'יום שני'}</span>
+              <span style={{ fontSize: '16px' }}> {groupData.meeting_day}</span>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <span className="material-symbols-outlined" style={{ opacity: 0.8 }}>location_on</span>
@@ -78,7 +78,7 @@ export default function GroupDetailsPage() {
         {/* Participants Section */}
         <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-            <button onClick={() => router.push('/groups/new/participants')} style={{ backgroundColor: '#003643', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '14px', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+          <button onClick={() => router.push(`/groups/new/participants?groupId=${groupData.id}`)} style={{ backgroundColor: '#003643', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '14px', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <span className="material-symbols-outlined">person_add</span> הוספת משתתף
             </button>
             <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#003643' }}>משתתפי הקבוצה</h2>
