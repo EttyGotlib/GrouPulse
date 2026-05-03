@@ -1,11 +1,36 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { getGroupDetails } from '../../../../../lib/api';
 
 export default function PreparationPage() {
   const router = useRouter();
   const { id, num } = useParams();
+
+  // State לשמירת שם הקבוצה
+  const [groupName, setGroupName] = useState('');
+
+  useEffect(() => {
+    const fetchGroupName = async () => {
+      if (!id) return;
+      
+      try {
+        // שימוש בפונקציה הקיימת שלך לשליפת פרטי קבוצה
+        const result = await getGroupDetails(id);
+        if (result.success && result.group) {
+          setGroupName(result.group.name);
+        } else {
+          setGroupName("קבוצה לא נמצאה");
+        }
+      } catch (error) {
+        console.error("Error fetching group name:", error);
+        setGroupName("שגיאה בטעינה");
+      }
+    };
+
+    fetchGroupName();
+  }, [id]);
 
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f]">
@@ -26,10 +51,11 @@ export default function PreparationPage() {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-50">
             <label className="text-slate-400 text-[11px] font-bold block mb-1 uppercase tracking-wider">שם הקבוצה</label>
-            <h2 className="text-xl font-extrabold text-[#003643] leading-tight">קבוצת צעירים - מיומנויות חברתיות</h2>
+            <h2 className="text-xl font-extrabold text-[#003643] leading-tight">{groupName}</h2>
             <div className="mt-4 flex items-center gap-2 text-[#32666d]">
               <span className="material-symbols-outlined text-lg">calendar_today</span>
               <span className="text-sm font-semibold">14 באפריל, 2024</span>
+              {new Date().toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' })}
             </div>
           </div>
           <div className="bg-[#003643] text-white p-6 rounded-2xl flex flex-col items-center justify-center text-center shadow-md">

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
+import { getGroupDetails } from '../../../../../lib/api';
 
 export default function SessionLogPage() {
   const router = useRouter();
@@ -12,38 +13,80 @@ export default function SessionLogPage() {
 
   // State לניהול הנתונים
   const [logText, setLogText] = useState('');
-  const [cohesion, setCohesion] = useState('גבוהה');
-  const [engagement, setEngagement] = useState('מאוזנת');
+  const [cohesion, setCohesion] = useState('');
+  const [engagement, setEngagement] = useState('');
+  const [atmosphere, setAtmosphere] = useState('');
   
-  // State לנוכחות - אתחול עם רשימת המשתתפים
-  const [attendance, setAttendance] = useState([
-    { name: 'אלון ר.', present: true },
-    { name: 'מיכל כ.', present: false },
-    { name: 'יואב ל.', present: true },
-    { name: 'דנה פ.', present: true }
-  ]);
+// 1. אתחול ה-attendance כרשימה ריקה
+const [attendance, setAttendance] = useState<any[]>([]);
+const [loading, setLoading] = useState(true);
 
-  // 1. טעינת הנתונים ברגע שהדף עולה
-  useEffect(() => {
-    const savedData = localStorage.getItem(storageKey);
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-      setLogText(parsed.logText || '');
-      setCohesion(parsed.cohesion || 'גבוהה');
-      setEngagement(parsed.engagement || 'מאוזנת');
-      if (parsed.attendance) {
-        setAttendance(parsed.attendance);
+useEffect(() => {
+  const loadInitialData = async () => {
+    try {
+      setLoading(true);
+      
+      // שליפת המשתתפים האמיתיים מהמסד
+      const result = await getGroupDetails(id);
+      let participantsFromDB = [];
+      
+      if (result.success && result.participants) {
+        // מיפוי המשתתפים למבנה הנתונים של הדף
+        participantsFromDB = result.participants.map((p: any) => ({
+          id: p.id, // חשוב לשמור ID לזיהוי
+          name: p.name_or_code,
+          present: false,
+          notes: '',
+          participationLevel: 0
+        }));
       }
+
+      // בדיקה אם יש נתונים שמורים ב-localStorage (טיוטה)
+      const savedData = localStorage.getItem(storageKey);
+      if (savedData) {
+        const parsed = JSON.parse(savedData);
+        setLogText(parsed.logText || '');
+        setCohesion(parsed.cohesion || '');
+        setEngagement(parsed.engagement || '');
+        setAtmosphere(parsed.atmosphere || '');
+        
+        if (parsed.attendance && parsed.attendance.length > 0) {
+          // מיזוג: מעדיפים את הנתונים השמורים (נוכחות/הערות) עבור המשתתפים הקיימים ב-DB
+          const mergedAttendance = participantsFromDB.map((dbPerson: any) => {
+            const savedPerson = parsed.attendance.find((sp: any) => sp.name === dbPerson.name || sp.id === dbPerson.id);
+            return savedPerson ? savedPerson : dbPerson;
+          });
+          setAttendance(mergedAttendance);
+        } else {
+          setAttendance(participantsFromDB);
+        }
+      } else {
+        setAttendance(participantsFromDB);
+      }
+    } catch (error) {
+      console.error("Failed to load participants:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [storageKey]);
+  };
+
+  if (id) loadInitialData();
+}, [id, storageKey]);
 
   // 2. פונקציית עזר לשמירה אוטומטית
-  const saveToLocal = (newText: string, newCohesion: string, newEngagement: string, newAttendance: any[]) => {
+  const saveToLocal = (
+    newText: string, 
+    newCohesion: string, 
+    newEngagement: string,
+    newAtmosphere: string, 
+    newAttendance: any[]) => {
     const dataToSave = {
       logText: newText,
       cohesion: newCohesion,
       engagement: newEngagement,
+      atmosphere: newAtmosphere,
       attendance: newAttendance
+      
     };
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
   };
@@ -53,7 +96,23 @@ export default function SessionLogPage() {
     const updatedAttendance = [...attendance];
     updatedAttendance[index].present = !updatedAttendance[index].present;
     setAttendance(updatedAttendance);
-    saveToLocal(logText, cohesion, engagement, updatedAttendance);
+    saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
+  };
+
+  // פונקציה חדשה לעדכון רמת השתתפות (1-5)
+  const updateParticipationLevel = (index: number, level: number) => {
+    const updatedAttendance = [...attendance];
+    updatedAttendance[index].participationLevel = level;
+    setAttendance(updatedAttendance);
+    saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
+  };
+
+  // פונקציה לעדכון הערה ספציפית למשתתף
+  const updateParticipantNotes = (index: number, text: string) => {
+    const updatedAttendance = [...attendance];
+    updatedAttendance[index].notes = text;
+    setAttendance(updatedAttendance);
+    saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
   };
 
   return (
@@ -85,7 +144,7 @@ export default function SessionLogPage() {
               value={logText}
               onChange={(e) => {
                 setLogText(e.target.value);
-                saveToLocal(e.target.value, cohesion, engagement, attendance);
+                saveToLocal(e.target.value, cohesion, engagement, atmosphere, attendance);
               }}
               className="w-full min-h-[160px] bg-[#f1f4f8] border-none rounded-xl p-6 focus:ring-0 focus:bg-white transition-all leading-relaxed text-right" 
               placeholder="תאר את מהלך המפגש, תובנות מרכזיות ודינמיקה בין המשתתפים..."
@@ -102,7 +161,7 @@ export default function SessionLogPage() {
                     key={val}
                     onClick={() => {
                       setCohesion(val);
-                      saveToLocal(logText, val, engagement, attendance);
+                      saveToLocal(logText, val, engagement, atmosphere, attendance);
                     }}
                     className={`flex-1 py-2 text-xs font-medium rounded-lg border transition-all ${cohesion === val ? 'bg-[#003643] text-white' : 'bg-white border-slate-200'}`}
                   >
@@ -111,6 +170,7 @@ export default function SessionLogPage() {
                 ))}
               </div>
             </div>
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-[#003643] px-1">רמת מעורבות כללית</label>
               <div className="flex gap-2">
@@ -119,9 +179,26 @@ export default function SessionLogPage() {
                     key={val}
                     onClick={() => {
                       setEngagement(val);
-                      saveToLocal(logText, cohesion, val, attendance);
+                      saveToLocal(logText, cohesion, val, atmosphere, attendance);
                     }}
                     className={`flex-1 py-2 text-xs font-medium rounded-lg border transition-all ${engagement === val ? 'bg-[#003643] text-white' : 'bg-white border-slate-200'}`}
+                  >
+                    {val}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-[#003643] px-1">אווירה כללית</label>
+              <div className="flex gap-2">
+                {['מתוחה', 'ניטרלית', 'תומכת'].map((val) => (
+                  <button 
+                    key={val}
+                    onClick={() => {
+                      setAtmosphere(val);
+                      saveToLocal(logText, cohesion, engagement, val, attendance);
+                    }}
+                    className={`flex-1 py-2 text-xs font-medium rounded-lg border transition-all ${atmosphere === val ? 'bg-[#003643] text-white' : 'bg-white border-slate-200'}`}
                   >
                     {val}
                   </button>
@@ -153,24 +230,60 @@ export default function SessionLogPage() {
         {/* Section 3: Individual Documentation */}
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-[#003643]">תיעוד פרטני</h2>
-          <div className="space-y-3">
-            <div className="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-slate-100">
-              <div className="flex items-center justify-between mb-4">
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-[#b7ecf3] flex items-center justify-center text-[#386c73] font-bold">אר</div>
-                  <div>
-                    <h3 className="font-bold text-[#003643]">אלון ר.</h3>
-                    <p className="text-xs text-slate-500">פעיל במיוחד המפגש</p>
+          <div className="space-y-4">
+            {attendance.filter(p => p.present).length === 0 ? (
+              <p className="text-slate-400 text-sm italic py-4 text-center bg-white rounded-2xl border border-dashed border-slate-200">
+                סמן נוכחות כדי להוסיף תיעוד פרטני
+              </p>
+            ) : (
+              attendance.map((person, i) => {
+                // מציגים רק אם המשתתף נוכח
+                if (!person.present) return null;
+
+                return (
+                  <div key={i} className="bg-white rounded-2xl p-6 shadow-sm ring-1 ring-slate-100 transition-all animate-in fade-in slide-in-from-bottom-2">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-full bg-[#b7ecf3] flex items-center justify-center text-[#386c73] font-bold">
+                          {person.name.substring(0, 2)}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-[#003643]">{person.name}</h3>
+                          <p className="text-xs text-green-600 font-medium">נוכח/ת במפגש</p>
+                        </div>
+                      </div>
+                    </div>
+
+                  {/* רכיב בחירת רמת השתתפות 1-5 */}
+                  <div className="bg-[#f1f4f8] rounded-2xl p-4 space-y-3">
+                      <label className="block text-center text-[#003643] font-bold text-sm">רמת השתתפות במפגש</label>
+                      <div className="flex justify-between gap-2 px-2">
+                        {[1, 2, 3, 4, 5].map((level) => (
+                          <button
+                            key={level}
+                            onClick={() => updateParticipationLevel(i, level)}
+                            className={`w-full py-2 rounded-xl font-bold transition-all ${
+                              person.participationLevel === level 
+                              ? 'bg-[#003643] text-white shadow-md' 
+                              : 'bg-white text-slate-400 hover:bg-white/80'
+                            }`}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <textarea 
+                      value={person.notes}
+                      onChange={(e) => updateParticipantNotes(i, e.target.value)}
+                      className="w-full bg-[#f1f4f8] border-none rounded-2xl p-5 text-sm leading-relaxed focus:ring-2 focus:ring-[#b7ecf3] focus:bg-white transition-all text-right min-h-[120px] mt-6"                      rows={3}
+                      placeholder={`הוסף הערה אישית על ${person.name}...`}
+                    ></textarea>
                   </div>
-                </div>
-                <span className="material-symbols-outlined text-[#003643]">expand_less</span>
-              </div>
-              <textarea 
-                className="w-full bg-[#f1f4f8] border-none rounded-xl p-4 text-sm leading-relaxed focus:ring-0 text-right" 
-                rows={4}
-                defaultValue="אלון הפגין רמה גבוהה של מודעות עצמית היום."
-              ></textarea>
-            </div>
+                );
+              })
+            )}
           </div>
         </section>
 
@@ -179,7 +292,7 @@ export default function SessionLogPage() {
           <button 
             onClick={() => {
                 // שמירה סופית ויציאה ללא alert
-                saveToLocal(logText, cohesion, engagement, attendance);
+                saveToLocal(logText, cohesion, engagement, atmosphere, attendance);
                 router.push(`/groups/${id}`);
             }}
             className="w-full py-5 bg-[#003643] text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-3"

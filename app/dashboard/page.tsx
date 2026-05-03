@@ -59,19 +59,16 @@ export default function DashboardPage() {
              </div>
              <span style={{ fontWeight: '800', color: '#003643', fontSize: '18px' }}>GrouPulse</span>
           </div>
-          <div style={{ display: 'flex', gap: '15px', color: '#003643' }}>
-            <span className="material-symbols-outlined cursor-pointer">notifications</span>
-            <span className="material-symbols-outlined cursor-pointer">search</span>
-          </div>
+          {/* האייקונים הוסרו מכאן */}
         </header>
 
         <main style={{ padding: '40px 20px 140px 20px' }}>
           <div style={{ textAlign: 'right', marginBottom: '40px' }}>
             <h1 style={{ fontSize: '36px', fontWeight: '800', color: '#003643', margin: 0 }}>
-              ברוך הבא, {userName}
+               ברוך הבא, {userName}
             </h1>
             <p style={{ color: '#41484b', marginTop: '8px', fontSize: '18px' }}>
-              המערכת מעודכנת עם נתוני הקבוצות שלך.
+               המערכת מעודכנת עם נתוני הקבוצות שלך.
             </p>
           </div>
 
@@ -80,12 +77,10 @@ export default function DashboardPage() {
               <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.8 }}>התראות ותזכורות</span>
               <span className="material-symbols-outlined" style={{ color: '#b7ecf3' }}>campaign</span>
             </div>
-            <p style={{ fontSize: '20px', textAlign: 'right', marginBottom: '25px', maxWidth: '600px', marginRight: '0', marginLeft: 'auto' }}>
+            <p style={{ fontSize: '20px', textAlign: 'right', marginBottom: '10px', maxWidth: '600px', marginRight: '0', marginLeft: 'auto' }}>
               {groups.length > 0 ? 'יש לך מפגשים קרובים השבוע. כדאי לעבור על רשימת המשתתפים.' : 'אין לך מפגשים מתוזמנים כרגע. צרי קבוצה חדשה כדי להתחיל את הפעילות.'}
             </p>
-            <button style={{ backgroundColor: '#bceafb', color: '#003643', border: 'none', padding: '12px 30px', borderRadius: '14px', fontWeight: 'bold', cursor: 'pointer' }}>
-              לכל המפגשים
-            </button>
+            {/* הכפתור הוסר מכאן */}
           </div>
 
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#003643', textAlign: 'right', marginBottom: '20px' }}>מדדי פעילות</h2>
@@ -101,37 +96,7 @@ export default function DashboardPage() {
             <StatItem icon="edit_note" value={stats.missingNotes} label="תיעודים חסרים" isError={stats.missingNotes > 0} />
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '25px' }}>
-             <button 
-                onClick={() => router.push('/groups/new')}
-                style={{ backgroundColor: '#003643', color: 'white', border: 'none', padding: '12px 20px', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer' }}>
-                + קבוצה חדשה
-             </button>
-             <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#003643' }}>הקבוצות שלי</h2>
-          </div>
-
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
-            gap: '20px' 
-          }}>
-             {groups.length > 0 ? (
-               groups.map((group: any) => (
-                 <GroupCard 
-                   key={group.id} 
-                   title={group.name} 
-                   participants={group.participants_count}
-                   // השינוי כאן: הוספנו פונקציית ניווט עם ה-ID של הקבוצה
-                   onClick={() => router.push(`/groups/${group.id}`)} 
-                 />
-               ))
-             ) : (
-               <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '60px', backgroundColor: 'white', borderRadius: '24px', color: '#999', border: '1px solid #f1f4f8' }}>
-                 <span className="material-symbols-outlined" style={{ fontSize: '64px', marginBottom: '15px' }}>folder_open</span>
-                 <p style={{ fontSize: '18px' }}>עדיין אין קבוצות רשומות במערכת.</p>
-               </div>
-             )}
-          </div>
+          {/* כאן הוסר החלק של "הקבוצות שלי" והקומפוננטה GroupCard כפי שביקשת בעבר */}
         </main>
       </div>
     </div>
@@ -144,30 +109,6 @@ function StatItem({ icon, value, label, isError }: any) {
       <span className="material-symbols-outlined" style={{ color: isError ? '#ba1a1a' : '#003643', opacity: 0.7, fontSize: '30px' }}>{icon}</span>
       <div style={{ fontSize: '32px', fontWeight: '900', color: isError ? '#ba1a1a' : '#003643', margin: '5px 0' }}>{value}</div>
       <div style={{ fontSize: '12px', fontWeight: 'bold', color: '#41484b' }}>{label}</div>
-    </div>
-  );
-}
-
-function GroupCard({ title, participants, onClick }: any) {
-  return (
-    <div 
-      // השינוי כאן: הוספנו את אירוע הלחיצה ל-DIV הראשי של הכרטיס
-      onClick={onClick}
-      style={{ 
-        backgroundColor: 'white', 
-        padding: '30px', 
-        borderRadius: '24px', 
-        border: '1px solid #f1f4f8', 
-        textAlign: 'right', 
-        transition: 'transform 0.2s', 
-        cursor: 'pointer' 
-      }}
-    >
-      <h3 style={{ fontSize: '20px', fontWeight: 'bold', color: '#003643', margin: 0 }}>{title}</h3>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', justifyContent: 'flex-end', marginTop: '10px' }}>
-        <span style={{ fontSize: '14px', color: '#666' }}>{participants} משתתפים</span>
-        <span className="material-symbols-outlined" style={{ fontSize: '18px', color: '#999' }}>groups</span>
-      </div>
     </div>
   );
 }

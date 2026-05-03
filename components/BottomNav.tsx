@@ -31,7 +31,7 @@ export default function BottomNav() {
       `}</style>
 
       <nav 
-        className="force-hide-on-print" // המחלקה שמוגדרת למעלה בסטייל
+        className="force-hide-on-print" 
         style={{ 
           position: 'fixed', 
           bottom: 0, 
@@ -67,12 +67,19 @@ export default function BottomNav() {
           active={isActive('/calendar')} 
           onClick={() => router.push('/calendar')} 
         />
+        
+        {/* כפתור "הקבוצות שלי" מאוחד - מפנה לדף החדש ודלוק בכל המקרים שביקשת */}
         <NavItem 
           icon="group" 
           label="הקבוצות שלי" 
-          active={pathname.includes('/groups') || pathname.includes('/participants')} 
-          onClick={() => router.push('/dashboard')} 
+          active={
+            pathname.includes('/groups') || 
+            pathname.includes('/participants') || 
+            pathname === '/dashboard/groups'
+          } 
+          onClick={() => router.push('/dashboard/groups')} 
         />
+
         <NavItem 
           icon="home" 
           label="בית" 

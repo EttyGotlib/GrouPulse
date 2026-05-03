@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		},
+		{
+			"path": "../../frontend"
+		},
+		{
+			"path": "../../groupulse-backend"
+		},
+		{
+			"path": "../../app"
+		}
+	],
+	"settings": {}
+}
