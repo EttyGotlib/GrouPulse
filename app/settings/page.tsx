@@ -87,29 +87,7 @@ export default function SettingsPage() {
 
       </main>
 
-      {/* Bottom Nav Bar - זהה לשאר האפליקציה */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex flex-row-reverse justify-around items-center px-4 pb-8 pt-4 bg-white/90 backdrop-blur-md rounded-t-[32px] border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-          <div onClick={() => router.push('/')} className="flex flex-col items-center p-2 text-slate-400 cursor-pointer">
-              <span className="material-symbols-outlined">home</span>
-              <span className="text-[10px] font-bold mt-1">בית</span>
-          </div>
-          <div onClick={() => router.push('/groups')} className="flex flex-col items-center p-2 text-slate-400 cursor-pointer">
-              <span className="material-symbols-outlined">group</span>
-              <span className="text-[10px] font-bold mt-1">הקבוצות שלי</span>
-          </div>
-          <div className="flex flex-col items-center p-2 text-slate-400 cursor-pointer">
-              <span className="material-symbols-outlined">calendar_month</span>
-              <span className="text-[10px] font-bold mt-1">יומן</span>
-          </div>
-          <div className="flex flex-col items-center p-2 text-slate-400 cursor-pointer">
-              <span className="material-symbols-outlined">insights</span>
-              <span className="text-[10px] font-bold mt-1">אנליטיקה</span>
-          </div>
-          <div className="flex flex-col items-center bg-[#1e4d5b] text-white rounded-2xl py-2 px-4 shadow-lg">
-              <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>settings</span>
-              <span className="text-[10px] font-bold mt-1">הגדרות</span>
-          </div>
-      </nav>
+      {/* הסרגל הכפול הוסר מכאן בהצלחה */}
     </div>
   );
 }

@@ -466,43 +466,6 @@ export default function PreparationPage() {
 
       </main>
 
-      {/* Bottom Nav Bar */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 flex flex-row-reverse justify-around items-center px-4 pb-6 pt-3 bg-white/90 backdrop-blur-md rounded-t-[32px] border-t border-slate-100 shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
-
-        <div className="flex flex-col items-center p-2 text-slate-400">
-          <span className="material-symbols-outlined">home</span>
-          <span className="text-[10px] font-bold mt-1">בית</span>
-        </div>
-
-        <div className="flex flex-col items-center bg-[#1e4d5b] text-white rounded-2xl p-2 min-w-[64px] shadow-lg shadow-cyan-900/20">
-          <span
-            className="material-symbols-outlined"
-            style={{ fontVariationSettings: "'FILL' 1" }}
-          >
-            group
-          </span>
-
-          <span className="text-[10px] font-bold mt-1">
-            הקבוצות שלי
-          </span>
-        </div>
-
-        <div className="flex flex-col items-center p-2 text-slate-400">
-          <span className="material-symbols-outlined">calendar_month</span>
-          <span className="text-[10px] font-bold mt-1">יומן</span>
-        </div>
-
-        <div className="flex flex-col items-center p-2 text-slate-400">
-          <span className="material-symbols-outlined">insights</span>
-          <span className="text-[10px] font-bold mt-1">אנליטיקה</span>
-        </div>
-
-        <div className="flex flex-col items-center p-2 text-slate-400">
-          <span className="material-symbols-outlined">settings</span>
-          <span className="text-[10px] font-bold mt-1">הגדרות</span>
-        </div>
-
-      </nav>
-    </div>
+     </div>
   );
 }
