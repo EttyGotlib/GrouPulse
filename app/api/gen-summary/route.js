@@ -16,7 +16,7 @@ export async function POST(req) {
     async function generateWithRetry(retries = 2) {
       try {
         return await ai.models.generateContent({
-          model: "gemini-flash-latest",
+          model: "gemini-2.5-flash",
           contents: prompt,
         }); // OR
               //const response = await ai.models.generateContent({
