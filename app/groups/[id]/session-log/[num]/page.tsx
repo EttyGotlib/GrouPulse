@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getGroupDetails } from '../../../../../lib/api';
+import { getGroupDetails ,saveIndividualNotes, saveSessionSummary} from '../../../../../lib/api';
 
 export default function SessionLogPage() {
   const router = useRouter();
@@ -290,16 +290,31 @@ useEffect(() => {
         {/* Save Button */}
         <div className="pt-6">
           <button 
-            onClick={() => {
-                // שמירה סופית ויציאה ללא alert
+            onClick={async () => {
+                // 1. שמירה מקומית ליתר ביטחון
                 saveToLocal(logText, cohesion, engagement, atmosphere, attendance);
-                router.push(`/groups/${id}`);
-            }}
-            className="w-full py-5 bg-[#003643] text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-3"
-          >
-            <span className="material-symbols-outlined">save</span>
-            שמור וסגור
+                const res1 = await saveIndividualNotes(id, num, attendance);
+                const res2 = await saveSessionSummary(id, num, {
+                  logText,
+                  cohesion: cohesion === 'נמוכה' ? 1 : cohesion === 'בינונית' ? 2 : 3, // המרה למספר עבור ה-DB
+                  engagement: engagement === 'פאסיבית' ? 1 : engagement === 'מאוזנת' ? 2 : 3,
+                  atmosphere: atmosphere === 'מתוחה' ? 1 : atmosphere === 'ניטרלית' ? 2 : 3
+                });
+                if (res1.success && res2.success) {
+                  // אם הצליח - מנקים את הטיוטה מהדפדפן ועוברים לדף הקבוצה
+                  localStorage.removeItem(storageKey);
+                  router.push(`/groups/${id}`);
+                } else {
+                  // אם הייתה שגיאה - מציגים אותה
+                  alert("שגיאה בשמירה: " + (res1.error || res2.error));
+                }
+              }}
+              className="w-full py-5 bg-[#003643] text-white rounded-2xl font-bold text-lg shadow-lg active:scale-95 transition-transform flex items-center justify-center gap-3"
+>
+              <span className="material-symbols-outlined">save</span>
+              שמור וסגור
           </button>
+           
         </div>
       </main>
     </div>
