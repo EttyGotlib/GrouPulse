@@ -12,11 +12,13 @@ export default function NewGroupPage() {
   // State לניהול הטופס
   const [groupName, setGroupName] = useState('');
   const [groupType, setGroupType] = useState('קבוצת תמיכה');
+  const [meeting_time, setMeetingTime] = useState(''); // שדה השעה החדש
   const [session_count, setSessionCount] = useState(12);
   const [participants, setParticipants] = useState<any[]>([]);
   const [start_date, setStartDate] = useState('');
   const [meeting_day, setMeetingDay] = useState('');
   const [location_notes, setLocationNotes] = useState('');
+
   // 1. טעינת נתונים מהזיכרון ברגע שהדף עולה
   useEffect(() => {
     const savedName = localStorage.getItem('temp_group_name');
@@ -52,12 +54,15 @@ export default function NewGroupPage() {
   
     try {
       const result = await createNewGroup(
-        {name: groupName, 
+        {
+          name: groupName, 
           type: groupType,
+          meeting_time: meeting_time, // שליחת השעה החדשה ל-API
           session_count: session_count,
           meeting_day: meeting_day,
           location_notes: location_notes,
-          start_date: start_date },
+          start_date: start_date 
+        },
         participants
       );
   
@@ -114,6 +119,17 @@ export default function NewGroupPage() {
           </select>
         </div>
 
+        {/* שעת המפגש - השדה החדש שהוספנו */}
+        <div style={cardStyle}>
+          <label style={labelStyle}>באיזה שעה מתקיים המפגש?</label>
+          <input 
+            type="time" 
+            style={inputStyle} 
+            value={meeting_time} 
+            onChange={(e) => setMeetingTime(e.target.value)} 
+          />
+        </div>
+
         {/* מונה מפגשים */}
         <div style={cardStyle}>
           <label style={labelStyle}>מספר מפגשים מתוכנן</label>
@@ -123,8 +139,6 @@ export default function NewGroupPage() {
             <button onClick={() => handleCountChange(Math.max(1, session_count - 1))} style={stepperBtn}>-</button>
           </div>
         </div>
-
-        {/* --- השינויים החדשים מתחילים כאן --- */}
 
         {/* תאריך התחלה */}
         <div style={cardStyle}>
@@ -156,12 +170,10 @@ export default function NewGroupPage() {
           <textarea 
             placeholder="למשל: המפגשים יתקיימו בזום / בקליניקה" 
             style={{...inputStyle, height: '80px', resize: 'none', paddingTop: '15px'}} 
-            value={location_notes} // החיבור ל-State החדש
+            value={location_notes} 
             onChange={(e) => setLocationNotes(e.target.value)}
           />
         </div>
-
-        {/* --- סוף השינויים החדשים --- */}
 
         {/* תצוגת משתתפים שנוספו */}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '15px' }}>
@@ -193,4 +205,3 @@ const cardStyle = { backgroundColor: 'white', borderRadius: '20px', padding: '20
 const labelStyle = { display: 'block', fontWeight: 'bold', color: '#003643', marginBottom: '10px', fontSize: '14px' };
 const inputStyle = { width: '100%', padding: '15px', borderRadius: '12px', border: 'none', backgroundColor: '#e9eef5', outline: 'none' };
 const stepperBtn = { background: 'white', border: 'none', borderRadius: '50%', width: '40px', height: '40px', cursor: 'pointer', fontWeight: 'bold', fontSize: '20px' };
-
