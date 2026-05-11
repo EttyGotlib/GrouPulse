@@ -302,7 +302,7 @@ useEffect(() => {
                 });
                 if (res1.success && res2.success) {
                   // אם הצליח - מנקים את הטיוטה מהדפדפן ועוברים לדף הקבוצה
-                  localStorage.removeItem(storageKey);
+                  //localStorage.removeItem(storageKey);
                   router.push(`/groups/${id}`);
                 } else {
                   // אם הייתה שגיאה - מציגים אותה
