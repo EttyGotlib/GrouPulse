@@ -1,10 +1,46 @@
 "use client";
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+// הוספת signOut לייבוא הקיים
+import { getCurrentUserInfo, signOut } from '../../lib/api'; 
 
 export default function SettingsPage() {
   const router = useRouter();
+  
+  // State לפרטי המשתמש
+  const [userData, setUserData] = useState({
+    fullName: "טוען...",
+    role: "מנחה קבוצות",
+    initials: ".."
+  });
+
+  useEffect(() => {
+    async function loadUserInfo() {
+      const result = await getCurrentUserInfo();
+      if (result.success) {
+        const name = result.data.fullName;
+        setUserData({
+          fullName: name,
+          role: result.data.role,
+          initials: name.charAt(0)
+        });
+      }
+    }
+    loadUserInfo();
+  }, []);
+
+  // פונקציה לביצוע התנתקות
+  const handleLogout = async () => {
+    // ביצוע הניתוק ב-Supabase
+    const result = await signOut();
+    if (result.success) {
+      // העברה לדף ההתחברות שנמצא בנתיב /login
+      router.push('/login');
+    } else {
+      alert("שגיאה בתהליך היציאה: " + result.error);
+    }
+  };
 
   // פונקציה ליצירת שורת הגדרות מעוצבת
   const SettingItem = ({ icon, title, subtitle, color = "text-slate-400" }: any) => (
@@ -25,13 +61,9 @@ export default function SettingsPage() {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f]">
       
-      {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 flex flex-row-reverse justify-between items-center w-full px-6 h-16 border-b border-slate-100">
         <h1 className="font-bold text-lg text-[#003643]">הגדרות</h1>
-        <button 
-          onClick={() => router.back()} 
-          className="p-2 rounded-full hover:bg-slate-100 transition-colors"
-        >
+        <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-slate-100 transition-colors">
           <span className="material-symbols-outlined">arrow_forward</span>
         </button>
       </header>
@@ -42,14 +74,14 @@ export default function SettingsPage() {
         <section className="text-center mb-4">
           <div className="relative inline-block">
             <div className="w-24 h-24 rounded-full bg-[#003643] border-4 border-white shadow-xl mx-auto flex items-center justify-center text-white text-3xl font-bold">
-              ע
+              {userData.initials}
             </div>
-            <button className="absolute bottom-0 right-0 bg-[#32666d] text-white p-1.5 rounded-full border-2 border-white shadow-md">
+            <button className="absolute bottom-0 right-0 bg-[#32666d] text-white p-1.5 rounded-full border-2 border-white shadow-md hover:bg-[#003643] transition-colors">
               <span className="material-symbols-outlined text-sm">edit</span>
             </button>
           </div>
-          <h2 className="text-xl font-extrabold text-[#003643] mt-4">עדו המנחה</h2>
-          <p className="text-xs text-slate-400 font-bold">עו"ס קליני | מנחה קבוצות</p>
+          <h2 className="text-xl font-extrabold text-[#003643] mt-4">{userData.fullName}</h2>
+          <p className="text-xs text-slate-400 font-bold">{userData.role}</p>
         </section>
 
         {/* קטגוריה: חשבון */}
@@ -79,15 +111,18 @@ export default function SettingsPage() {
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">תמיכה</h3>
           <SettingItem icon="help" title="מרכז עזרה" />
           <SettingItem icon="info" title="אודות המערכת" subtitle="גרסה 1.0.4" />
-          <button className="w-full flex flex-row-reverse items-center justify-center gap-2 p-5 text-rose-500 font-bold text-sm bg-rose-50 rounded-2xl mt-4 active:scale-95 transition-all">
+          
+          {/* כפתור היציאה המחובר לפונקציה */}
+          <button 
+            onClick={handleLogout}
+            className="w-full flex flex-row-reverse items-center justify-center gap-2 p-5 text-rose-500 font-bold text-sm bg-rose-50 rounded-2xl mt-4 active:scale-95 transition-all"
+          >
             <span className="material-symbols-outlined">logout</span>
             יציאה מהחשבון
           </button>
         </section>
 
       </main>
-
-      {/* הסרגל הכפול הוסר מכאן בהצלחה */}
     </div>
   );
 }
