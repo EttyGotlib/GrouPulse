@@ -11,6 +11,7 @@ export default function ParticipantProfilePage() {
   // 1. הגדרת משתנים לשמירת הנתונים
   const [progressData, setProgressData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [participantName, setParticipantName] = useState<string>('');
 
   // 2. פונקציה שמושכת את הנתונים ברגע שהדף עולה
   useEffect(() => {
@@ -19,6 +20,11 @@ export default function ParticipantProfilePage() {
       const result = await getParticipantProgress(id);
       if (result.success) {
         setProgressData(result.data);
+        if (result.data && result.data.length > 0) {
+          
+          const firstRecord = result.data[0];
+          setParticipantName(firstRecord.Participants?.name_or_code || "");
+        }
       }
       setLoading(false);
     };
@@ -26,8 +32,7 @@ export default function ParticipantProfilePage() {
     if (id) fetchData();
   }, [id]);
 
-  // 3. חישוב ממוצע השתתפות אמיתי
-  // קוד מתוקן:
+  
   const avgParticipation = progressData.length > 0 
     ? (progressData.reduce((acc: number, curr: any) => acc + (curr.participation_score || 0), 0) / progressData.length).toFixed(1)
     : "0";
@@ -55,7 +60,7 @@ export default function ParticipantProfilePage() {
         <div style={{ textAlign: 'right', marginBottom: '30px' }}>
           <p style={{ color: '#003643', fontWeight: 'bold', fontSize: '14px', marginBottom: '5px' }}>ניתוח מעקב</p>
           <h1 style={{ fontSize: '32px', fontWeight: '900', color: '#003643', marginBottom: '10px' }}>
-            פרופיל משתתף: #{id}
+            פרופיל משתתף: {participantName || `#${id}`}
           </h1>
           <p style={{ color: '#64748b', fontSize: '16px' }}>סקירת התקדמות רגשית, מעורבות קבוצתית ועמידה ביעדים טיפוליים.</p>
         </div>
