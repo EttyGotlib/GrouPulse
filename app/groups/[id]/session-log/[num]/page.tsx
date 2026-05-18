@@ -33,7 +33,7 @@ useEffect(() => {
       if (result.success && result.participants) {
         // מיפוי המשתתפים למבנה הנתונים של הדף
         participantsFromDB = result.participants.map((p: any) => ({
-          id: p.id, // חשוב לשמור ID לזיהוי
+          id: p.id, 
           name: p.name_or_code,
           present: false,
           notes: '',
@@ -41,7 +41,7 @@ useEffect(() => {
         }));
       }
 
-      // בדיקה אם יש נתונים שמורים ב-localStorage (טיוטה)
+      
       const savedData = localStorage.getItem(storageKey);
       if (savedData) {
         const parsed = JSON.parse(savedData);
@@ -51,7 +51,7 @@ useEffect(() => {
         setAtmosphere(parsed.atmosphere || '');
         
         if (parsed.attendance && parsed.attendance.length > 0) {
-          // מיזוג: מעדיפים את הנתונים השמורים (נוכחות/הערות) עבור המשתתפים הקיימים ב-DB
+          
           const mergedAttendance = participantsFromDB.map((dbPerson: any) => {
             const savedPerson = parsed.attendance.find((sp: any) => sp.name === dbPerson.name || sp.id === dbPerson.id);
             return savedPerson ? savedPerson : dbPerson;
