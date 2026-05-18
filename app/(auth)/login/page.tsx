@@ -13,14 +13,15 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // התחברות עם אימייל וסיסמה
+  // התחברות עם אימייל וסיסמה ובדיקת תפקיד
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
+    // 1. התחברות ל-Supabase Auth
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -28,13 +29,38 @@ export default function LoginPage() {
     if (error) {
       setErrorMsg('פרטי ההתחברות אינם נכונים');
       setLoading(false);
-    } else {
-      router.push('/dashboard'); 
-      router.refresh();
+      return;
+    }
+
+    // 2. אם ההתחברות הצליחה, בודקים את התפקיד בטבלת Profiles
+    if (data?.user) {
+      try {
+        // שינוי ל-maybeSingle כדי למנוע את קריסת ה-JSON במקרה שהשורה לא נמצאה
+        const { data: profile, error: profileError } = await supabase
+          .from('Profiles')
+          .select('role')
+          .eq('id', data.user.id)
+          .maybeSingle();
+
+        if (profileError) throw profileError;
+
+        // 3. ניתוב חכם לפי סוג המשתמש (בודק את שני הווריאציות של המוסד ליתר ביטחון)
+        if (profile && (profile.role === 'institution' || profile.role === 'institute')) {
+          router.push('/institute');
+        } else {
+          router.push('/dashboard'); // למנחים (moderator)
+        }
+        
+        router.refresh();
+      } catch (err: any) {
+        console.error('Error fetching profile:', err.message);
+        // במקרה של שגיאה בשליפת הפרופיל, ננתב כברירת מחדל לדאשבורד הרגיל
+        router.push('/dashboard');
+        router.refresh();
+      }
     }
   };
 
- 
   // פונקציה לשליחת מייל שחזור סיסמה
   const handleForgotPassword = async () => {
     if (!email) {
@@ -121,7 +147,6 @@ export default function LoginPage() {
                 {loading ? 'מתחבר...' : 'התחברות'}
               </button>
 
-              
               {/* קישור להרשמה שהוחזר */}
               <p className="text-center text-sm text-gray-600">
                 אין לך חשבון?{' '}
