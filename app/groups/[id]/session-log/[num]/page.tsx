@@ -296,12 +296,11 @@ useEffect(() => {
                 const res1 = await saveIndividualNotes(id, num, attendance);
                 const res2 = await saveSessionSummary(id, num, {
                   logText,
-                  cohesion: cohesion === 'נמוכה' ? 1 : cohesion === 'בינונית' ? 2 : 3, // המרה למספר עבור ה-DB
+                  cohesion: cohesion === 'נמוכה' ? 1 : cohesion === 'בינונית' ? 2 : 3, 
                   engagement: engagement === 'פאסיבית' ? 1 : engagement === 'מאוזנת' ? 2 : 3,
                   atmosphere: atmosphere === 'מתוחה' ? 1 : atmosphere === 'ניטרלית' ? 2 : 3
                 });
                 if (res1.success && res2.success) {
-                  // אם הצליח - מנקים את הטיוטה מהדפדפן ועוברים לדף הקבוצה
                   //localStorage.removeItem(storageKey);
                   router.push(`/groups/${id}`);
                 } else {
