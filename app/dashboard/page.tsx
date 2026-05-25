@@ -96,7 +96,8 @@ export default function DashboardPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#003643', overflow: 'hidden' }}>
-                <img src={`https://ui-avatars.com/api/?name=${userName}&background=003643&color=fff`} style={{ width: '100%' }} alt="פרופיל" />
+                {/* התיקון כאן: עטיפת ה-userName ב-encodeURIComponent כדי למנוע את קריסת ה-ByteString */}
+                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=003643&color=fff`} style={{ width: '100%' }} alt="פרופיל" />
              </div>
              <span style={{ fontWeight: '800', color: '#003643', fontSize: '18px' }}>GrouPulse</span>
           </div>
@@ -113,25 +114,26 @@ export default function DashboardPage() {
           </div>
 
           {/* תיבת ההתראות הדינמית - מיושרת לימין בצורה מושלמת */}
-<div style={{ backgroundColor: '#1e4d5b', borderRadius: '24px', padding: '30px', color: 'white', marginBottom: '40px' }}>
-  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start', flexDirection: 'row-reverse', marginBottom: '15px' }}>
-    <span className="material-symbols-outlined" style={{ color: '#b7ecf3' }}>campaign</span>
-    <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.8 }}>התראות ותזכורות</span>
-  </div>
-  
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-    {currentAlerts.map((alert, index) => (
-      <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', flexDirection: 'row-reverse', justifyContent: 'flex-start' }}>
-        <span className="material-symbols-outlined" style={{ color: alert.color, fontSize: '24px' }}>
-          {alert.icon}
-        </span>
-        <p style={{ fontSize: '18px', textAlign: 'right', margin: 0, opacity: 0.9, lineHeight: '1.4', flex: 1 }}>
-          {alert.text}
-        </p>
-      </div>
-    ))}
-  </div>
-</div>
+          <div style={{ backgroundColor: '#1e4d5b', borderRadius: '24px', padding: '30px', color: 'white', marginBottom: '40px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start', flexDirection: 'row-reverse', marginBottom: '15px' }}>
+              <span className="material-symbols-outlined" style={{ color: '#b7ecf3' }}>campaign</span>
+              <span style={{ fontSize: '14px', fontWeight: 'bold', opacity: 0.8 }}>התראות ותזכורות</span>
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {currentAlerts.map((alert, index) => (
+                <div key={index} style={{ display: 'flex', alignItems: 'center', gap: '12px', flexDirection: 'row-reverse', justifyContent: 'flex-start' }}>
+                  <span className="material-symbols-outlined" style={{ color: alert.color, fontSize: '24px' }}>
+                    {alert.icon}
+                  </span>
+                  <p style={{ fontSize: '18px', textAlign: 'right', margin: 0, opacity: 0.9, lineHeight: '1.4', flex: 1 }}>
+                    {alert.text}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <h2 style={{ fontSize: '24px', fontWeight: 'bold', color: '#003643', textAlign: 'right', marginBottom: '20px' }}>מדדי פעילות</h2>
           <div style={{ 
             display: 'grid', 

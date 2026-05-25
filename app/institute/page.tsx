@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, Layers, ArrowLeftRight, Plus, FileText, Megaphone, AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
+import { Users, Layers, ArrowLeftRight, Megaphone, AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
 
 export default function InstituteDashboard() {
   // נתוני דוגמה (Mock Data) עשירים ומתוחכמים בשביל הפרונט-אנד
@@ -32,26 +32,18 @@ export default function InstituteDashboard() {
   });
 
   return (
-    <div className="bg-[#f7f9fe] text-[#181c1f] min-h-screen p-6 md:p-10" dir="rtl">
+    <div className="p-6 md:p-10 flex-1 pb-24" dir="rtl">
       <div className="max-w-7xl mx-auto space-y-8">
         
-        {/* באנר עליון חגיגי */}
+        {/* באנר עליון חגיגי - שונה: הכפתורים הוסרו והטקסט מיושר נקי */}
         <div className="bg-[#003643] text-white rounded-[2rem] p-8 md:p-10 shadow-md flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
           <div className="space-y-2 text-right">
             <h1 className="text-3xl md:text-4xl font-black leading-tight">שלום, מכון פסגות</h1>
             <p className="text-white/80 text-base">המערכות פועלות כסדרן. באפשרותך לצפות בנתוני המנחים והקבוצות המשויכים למוסד.</p>
           </div>
-          <div className="flex gap-3 w-full md:w-auto">
-            <button className="flex-1 md:flex-initial bg-white text-[#003643] font-bold px-6 py-3 rounded-xl shadow-sm hover:bg-white/90 transition-all flex items-center justify-center gap-2">
-              <Plus size={18} /> הוסף מטפל
-            </button>
-            <button className="flex-1 md:flex-initial bg-white/10 text-white font-bold px-6 py-3 rounded-xl border border-white/20 hover:bg-white/20 transition-all flex items-center justify-center gap-2">
-              <FileText size={18} /> דו"ח יומי
-            </button>
-          </div>
         </div>
 
-        {/* תיבת התראות מנהלתיות למוסד - תוקן ל-Megaphone */}
+        {/* תיבת התראות מנהלתיות למוסד */}
         <div className="bg-[#1e4d5b] rounded-[1.5rem] p-6 text-white space-y-4">
           <div className="flex items-center gap-2 justify-start flex-row-reverse">
             <Megaphone className="text-[#b7ecf3]" size={22} />
@@ -104,89 +96,6 @@ export default function InstituteDashboard() {
               <p className="text-4xl font-black text-[#003643]">{mockData.moderators.length}</p>
               <span className="text-xs text-purple-600 font-semibold bg-purple-50 px-2 py-0.5 rounded-full">צוות מסור</span>
             </div>
-          </div>
-        </div>
-
-        {/* בלוק תוכן מרכזי - מנחים וקבוצות */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 text-right">
-          
-          {/* צוות המטפלים / מנחים */}
-          <div className="lg:col-span-2 bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 space-y-6">
-            <div className="flex justify-between items-center flex-row-reverse">
-              <h2 className="text-xl font-bold text-[#003643]">צוות המנחים במכון</h2>
-              <button className="text-sm font-bold text-[#32666d] hover:underline">הצג את כולם</button>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {mockData.moderators.map((mod) => (
-                <div key={mod.id} className="p-4 border border-zinc-100 rounded-2xl flex items-center gap-4 hover:bg-zinc-50 transition-all flex-row-reverse justify-between">
-                  <div className="flex items-center gap-4 flex-row-reverse">
-                    <div className="w-12 h-12 rounded-full bg-[#003643] text-white flex items-center justify-center font-bold text-lg">
-                      {mod.full_name.charAt(0)}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-base text-[#003643]">{mod.full_name}</h3>
-                      <p className="text-xs text-zinc-500">{mod.role}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs text-zinc-400" dir="ltr">{mod.email}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* מטופלים חדשים שהצטרפו השבוע */}
-          <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 space-y-6">
-            <h2 className="text-xl font-bold text-[#003643]">מטופלים חדשים במכון</h2>
-            <p className="text-xs text-zinc-400">סקירה מרוכזת של המטופלים החדשים שנרשמו השבוע לקבוצות המכון.</p>
-            
-            <div className="space-y-3">
-              {mockData.newParticipants.map((part) => (
-                <div key={part.id} className="p-4 bg-zinc-50 rounded-xl flex items-center justify-between flex-row-reverse">
-                  <div className="text-right">
-                    <span className="font-bold text-[#003643] block text-sm">{part.name}</span>
-                    <span className="text-xs text-zinc-500 block">שויך ל: {part.group}</span>
-                  </div>
-                  <span className="text-xs bg-sky-100 text-sky-800 px-2 py-1 rounded-md font-semibold">{part.date}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* מעקב קבוצות פעילות בארגון */}
-        <div className="bg-white p-6 rounded-[2rem] shadow-sm border border-gray-100 space-y-6 text-right">
-          <h2 className="text-xl font-bold text-[#003643]">מעקב קבוצות פעילות בארגון</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-right" style={{ direction: 'rtl' }}>
-              <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 rounded-xl">
-                <tr>
-                  <th scope="col" className="px-6 py-4 rounded-r-xl">שם הקבוצה</th>
-                  <th scope="col" className="px-6 py-4">מנחה אחראי</th>
-                  <th scope="col" className="px-6 py-4">מספר משתתפים</th>
-                  <th scope="col" className="px-6 py-4 rounded-l-xl">סטטוס קבוצה</th>
-                </tr>
-              </thead>
-              <tbody>
-                {mockData.groups.map((group) => (
-                  <tr key={group.id} className="bg-white border-b border-zinc-100 hover:bg-zinc-50 transition-all">
-                    <td className="px-6 py-4 font-bold text-[#003643]">{group.name}</td>
-                    <td className="px-6 py-4 text-zinc-600">{group.moderator}</td>
-                    <td className="px-6 py-4">
-                      <span className="bg-zinc-100 text-[#003643] font-bold px-2.5 py-1 rounded-full text-xs">
-                        {group.count} מטופלים
-                      </span>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="inline-flex items-center gap-1.5 text-xs font-medium text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full">
-                        <span className="w-1.5 h-1.5 bg-teal-500 rounded-full"></span>
-                        {group.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
           </div>
         </div>
 
