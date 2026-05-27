@@ -12,7 +12,7 @@ export default function NewGroupPage() {
   // State לניהול הטופס
   const [groupName, setGroupName] = useState('');
   const [groupType, setGroupType] = useState('קבוצת תמיכה');
-  const [meeting_time, setMeetingTime] = useState(''); // שדה השעה החדש
+  const [meeting_time, setMeetingTime] = useState(''); 
   const [session_count, setSessionCount] = useState(12);
   const [participants, setParticipants] = useState<any[]>([]);
   const [start_date, setStartDate] = useState('');
@@ -57,7 +57,7 @@ export default function NewGroupPage() {
         {
           name: groupName, 
           type: groupType,
-          meeting_time: meeting_time, // שליחת השעה החדשה ל-API
+          meeting_time: meeting_time, 
           session_count: session_count,
           meeting_day: meeting_day,
           location_notes: location_notes,
