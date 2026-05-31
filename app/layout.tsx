@@ -1,20 +1,22 @@
-'use client'; // שורה 1: הוספת הגדרת צד-לקוח
+'use client';
 
 import './globals.css'
-import type { Metadata } from 'next'
-import BottomNav from '../components/BottomNav'
-import { usePathname } from 'next/navigation'; // הוספת הייבוא הזה
+import BottomNav from '../components/ui/BottomNav'
+import { usePathname } from 'next/navigation';
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const pathname = usePathname(); // הגדרת המשתנה שבודק איפה אנחנו נמצאים
+  const pathname = usePathname();
 
-  // רשימת הדפים שבהם לא נציג את הסרגל
+  // רשימת הדפים שבהם לא נציג את הסרגל בכלל (כמו דפי כניסה והרשמה)
   const noNavPages = ['/login', '/register', '/reset-password'];
-  const showNav = !noNavPages.includes(pathname);
+  
+  // המנחה יראה את הסרגל שלו בכל הדפים הרגילים, חוץ מדפי התחברות ומדפי המוסד
+  const isInstitutePage = pathname?.startsWith('/institute');
+  const showNav = !noNavPages.includes(pathname) && !isInstitutePage;
 
   return (
     <html lang="he" dir="rtl">
@@ -27,7 +29,6 @@ export default function RootLayout({
           {children}
         </main>
 
-        {/* שורה שונתה: הסרגל יופיע רק אם showNav הוא true */}
         {showNav && <BottomNav />}
       </body>
     </html>
