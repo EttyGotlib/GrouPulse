@@ -10,15 +10,62 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState(''); 
+  const [institutionCode, setInstitutionCode] = useState(''); // שדה קוד מוסד חדש
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // פונקציה אמינה ליצירת קוד מוסד באנגלית בלבד למניעת בעיות קידוד
+  const generateRandomCode = () => {
+    const randomNum = Math.floor(1000 + Math.random() * 9000); // 4 ספרות אקראיות
+    return `INST-${randomNum}`; // דוגמה לתוצאה: INST-5900
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
 
+    let finalInstitutionId = null;
+    let generatedCodeForInstitution = null;
+
+    // --- שלב 1: בדיקת קוד מוסד מראש (לפני שנוגעים ב-Auth) ---
+    if (practiceType === 'private' && institutionCode.trim() !== '') {
+      try {
+        // הפיכת הקוד לאותיות גדולות וניקוי רווחים קיצוניים
+        const cleanCode = institutionCode.trim().toUpperCase();
+
+        const { data: instProfile, error: searchError } = await supabase
+          .from('Profiles')
+          .select('id')
+          .ilike('institution_code', cleanCode) // מתעלם מאותיות קטנות/גדולות ושגיאות כתיב
+          .eq('role', 'institution')
+          .maybeSingle();
+
+        if (searchError) throw searchError;
+
+        if (instProfile) {
+          finalInstitutionId = instProfile.id; // הקוד תקין, שומרים את ה-ID שלו
+        } else {
+          // אם הקוד שגוי, עוצרים פה ולא פותחים יוזר ב-Auth
+          setErrorMsg('קוד המוסד שהוזן אינו קיים במערכת. אנא בדקו את הקוד שוב.');
+          setLoading(false);
+          return;
+        }
+      } catch (searchErr: any) {
+        console.error('Error searching institution code:', searchErr);
+        setErrorMsg('חלה שגיאה בבדיקת קוד המוסד. נסו שוב.');
+        setLoading(false);
+        return;
+      }
+    }
+
+    // אם סוג הרישום הוא מוסד - מייצרים לו את הקוד החדש והנקי
+    if (practiceType === 'institution') {
+      generatedCodeForInstitution = generateRandomCode();
+    }
+
+    // --- שלב 2: הרשמה ל-Supabase Auth (רק אחרי שהקוד אומת בהצלחה) ---
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -31,31 +78,46 @@ export default function RegisterPage() {
     });
 
     if (error) {
-      // בדיקה האם השגיאה היא שהמשתמש כבר רשום
       if (error.message.includes('User already registered') || error.status === 422) {
         setErrorMsg('כתובת המייל הזו כבר רשומה במערכת. נסו להתחבר.');
       } else {
         setErrorMsg('חלה שגיאה בתהליך ההרשמה: ' + error.message);
       }
       setLoading(false);
-    } else if (data.user) {
-      const { error: profileError } = await supabase
-        .from('Profiles') 
-        .insert([
-          {
-            id: data.user.id,
-            full_name: fullName,
-            email: email,
-            role: practiceType === 'institution' ? 'institution' : 'moderator'
-          }
-        ]);
+      return;
+    }
 
-      if (profileError) {
-        console.error('Error creating profile:', profileError);
+    // --- שלב 3: יצירת הפרופיל בטבלת Profiles ---
+    if (data.user) {
+      try {
+        const { error: profileError } = await supabase
+          .from('Profiles') 
+          .insert([
+            {
+              id: data.user.id,
+              full_name: fullName,
+              email: email,
+              role: practiceType === 'institution' ? 'institution' : 'moderator',
+              institution_code: generatedCodeForInstitution,
+              institution_id: finalInstitutionId // יישמר במדויק בטבלה
+            }
+          ]);
+
+        if (profileError) throw profileError;
+
+        if (practiceType === 'institution') {
+          alert(`ההרשמה הצליחה! קוד המוסד הייחודי שלכם הוא: ${generatedCodeForInstitution}. המנחים שלכם יוכלו להשתמש בו בהרשמה.`);
+        } else {
+          alert('ההרשמה הצליחה! כעת ניתן להתחבר.');
+        }
+        
+        router.push('/login');
+
+      } catch (err: any) {
+        console.error('Error creating profile:', err);
+        setErrorMsg('החשבון נוצר אך חלה שגיאה בשמירת הנתונים בטבלה: ' + err.message);
+        setLoading(false);
       }
-
-      alert('ההרשמה הצליחה! כעת ניתן להתחבר.');
-      router.push('/login');
     }
   };
 
@@ -82,7 +144,7 @@ export default function RegisterPage() {
             onClick={() => setPracticeType('private')}
             className={`flex-1 py-3 text-sm font-semibold rounded-xl transition-all ${practiceType === 'private' ? 'bg-white text-[#003643] shadow-sm' : 'text-gray-500'}`}
           >
-            מטפל עצמאי
+            מטפל עצמאי / מנחה
           </button>
           <button 
             type="button"
@@ -130,6 +192,23 @@ export default function RegisterPage() {
               required
             />
           </div>
+
+          {/* שדה אופציונלי לקוד מוסד - יוצג אך ורק עבור רישום מנחים/מטפלים */}
+          {practiceType === 'private' && (
+            <div className="space-y-1.5 text-right animate-fadeIn">
+              <label className="text-sm font-medium text-gray-700 px-1 flex justify-between flex-row-reverse">
+                <span>קוד מוסד משויך</span>
+                <span className="text-xs text-gray-400 font-normal">(אופציונלי)</span>
+              </label>
+              <input 
+                className="w-full px-5 py-4 bg-gray-100 border-none rounded-2xl focus:ring-2 focus:ring-[#a0cdde] text-right outline-none placeholder:text-gray-400 font-mono"
+                placeholder="למשל: PSG-1234"
+                value={institutionCode}
+                onChange={(e) => setInstitutionCode(e.target.value)}
+              />
+              <p className="text-xs text-gray-400 px-1 mt-1">אם קיבלת קוד ממכון או מוסד שעמו אתם עובדים, הזן אותו כאן כדי להשתייך אליו.</p>
+            </div>
+          )}
 
           {errorMsg && <p className="text-red-600 text-sm text-center font-medium bg-red-50 p-2 rounded-lg">{errorMsg}</p>}
 
