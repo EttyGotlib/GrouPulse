@@ -19,17 +19,25 @@ export default function NewGroupPage() {
   const [meeting_day, setMeetingDay] = useState('');
   const [location_notes, setLocationNotes] = useState('');
 
-  // 1. טעינת נתונים מהזיכרון ברגע שהדף עולה
+  // 1. שונה: טעינת *כל* הנתונים מהזיכרון ברגע שהדף עולה מחדש
   useEffect(() => {
     const savedName = localStorage.getItem('temp_group_name');
     const savedType = localStorage.getItem('temp_group_type');
     const savedCount = localStorage.getItem('temp_session_count');
     const savedParticipants = localStorage.getItem('temp_participants');
+    const savedTime = localStorage.getItem('temp_meeting_time');
+    const savedStartDate = localStorage.getItem('temp_start_date');
+    const savedMeetingDay = localStorage.getItem('temp_meeting_day');
+    const savedLocationNotes = localStorage.getItem('temp_location_notes');
 
     setGroupName(savedName || '');
     setGroupType(savedType || 'קבוצת תמיכה');
     setSessionCount(savedCount ? parseInt(savedCount) : 12);
     setParticipants(savedParticipants ? JSON.parse(savedParticipants) : []);
+    setMeetingTime(savedTime || '');
+    setStartDate(savedStartDate || '');
+    setMeetingDay(savedMeetingDay || '');
+    setLocationNotes(savedLocationNotes || '');
   }, []);
 
   // 2. פונקציות עזר לשמירה מיידית בזיכרון בזמן שינוי
@@ -46,6 +54,27 @@ export default function NewGroupPage() {
   const handleCountChange = (newCount: number) => {
     setSessionCount(newCount);
     localStorage.setItem('temp_session_count', newCount.toString());
+  };
+
+  // שונה: הוספת פונקציות שמירה לשדות החדשים כדי שלא יימחקו במעבר דפים
+  const handleTimeChange = (val: string) => {
+    setMeetingTime(val);
+    localStorage.setItem('temp_meeting_time', val);
+  };
+
+  const handleStartDateChange = (val: string) => {
+    setStartDate(val);
+    localStorage.setItem('temp_start_date', val);
+  };
+
+  const handleMeetingDayChange = (val: string) => {
+    setMeetingDay(val);
+    localStorage.setItem('temp_meeting_day', val);
+  };
+
+  const handleLocationNotesChange = (val: string) => {
+    setLocationNotes(val);
+    localStorage.setItem('temp_location_notes', val);
   };
 
   const handleCreateGroup = async () => {
@@ -67,11 +96,15 @@ export default function NewGroupPage() {
       );
   
       if (result.success) {
-        // אם השמירה הצליחה - מנקים את הזיכרון המקומי
+        // אם השמירה הצליחה - מנקים את *כל* הזיכרון המקומי ששמרנו
         localStorage.removeItem('temp_participants');
         localStorage.removeItem('temp_group_name');
         localStorage.removeItem('temp_group_type');
         localStorage.removeItem('temp_session_count');
+        localStorage.removeItem('temp_meeting_time');
+        localStorage.removeItem('temp_start_date');
+        localStorage.removeItem('temp_meeting_day');
+        localStorage.removeItem('temp_location_notes');
   
         alert('הקבוצה נוצרה בהצלחה!');
         router.push('/dashboard');
@@ -119,14 +152,14 @@ export default function NewGroupPage() {
           </select>
         </div>
 
-        {/* שעת המפגש - השדה החדש שהוספנו */}
+        {/* שעת המפגש - שונה: מחובר לפונקציית השמירה החדשה */}
         <div style={cardStyle}>
           <label style={labelStyle}>באיזה שעה מתקיים המפגש?</label>
           <input 
             type="time" 
             style={inputStyle} 
             value={meeting_time} 
-            onChange={(e) => setMeetingTime(e.target.value)} 
+            onChange={(e) => handleTimeChange(e.target.value)} 
           />
         </div>
 
@@ -140,19 +173,19 @@ export default function NewGroupPage() {
           </div>
         </div>
 
-        {/* תאריך התחלה */}
+        {/* תאריך התחלה - שונה: מחובר לפונקציית השמירה החדשה */}
         <div style={cardStyle}>
           <label style={labelStyle}>מתי תאריך ההתחלה?</label>
-          <input type="date" style={inputStyle} value={start_date} onChange={(e) => setStartDate(e.target.value)} />
+          <input type="date" style={inputStyle} value={start_date} onChange={(e) => handleStartDateChange(e.target.value)} />
         </div>
 
-        {/* יום המפגש */}
+        {/* יום המפגש - שונה: מחובר לפונקציית השמירה החדשה */}
         <div style={cardStyle}>
           <label style={labelStyle}>מה יום המפגש הקבוע?</label>
           <select 
             style={inputStyle}
             value={meeting_day}
-            onChange={(e) => setMeetingDay(e.target.value)}
+            onChange={(e) => handleMeetingDayChange(e.target.value)}
           >
             <option value="">בחרי יום...</option>
             <option>יום ראשון</option>
@@ -164,14 +197,14 @@ export default function NewGroupPage() {
           </select>
         </div>
 
-        {/* הערות ללו"ז */}
+        {/* הערות ללו"ז - שונה: מחובר לפונקציית השמירה החדשה */}
         <div style={cardStyle}>
           <label style={labelStyle}>הערות ללו"ז ומיקום</label>
           <textarea 
             placeholder="למשל: המפגשים יתקיימו בזום / בקליניקה" 
             style={{...inputStyle, height: '80px', resize: 'none', paddingTop: '15px'}} 
             value={location_notes} 
-            onChange={(e) => setLocationNotes(e.target.value)}
+            onChange={(e) => handleLocationNotesChange(e.target.value)}
           />
         </div>
 
