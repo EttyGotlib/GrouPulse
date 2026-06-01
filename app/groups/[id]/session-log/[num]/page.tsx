@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { getGroupDetails ,saveIndividualNotes, saveSessionSummary} from '../../../../../lib/api';
+import { getGroupDetails ,saveIndividualNotes, saveSessionSummary,getSessionSummary,getIndividualNotesBySession} from '../../../../../lib/api';
 
 export default function SessionLogPage() {
   const router = useRouter();
@@ -25,54 +25,55 @@ useEffect(() => {
   const loadInitialData = async () => {
     try {
       setLoading(true);
-      
-      // שליפת המשתתפים האמיתיים מהמסד
-      const result = await getGroupDetails(id);
-      let participantsFromDB = [];
-      
-      if (result.success && result.participants) {
-        // מיפוי המשתתפים למבנה הנתונים של הדף
-        participantsFromDB = result.participants.map((p: any) => ({
-          id: p.id, 
-          name: p.name_or_code,
-          present: false,
-          notes: '',
-          participationLevel: 0
-        }));
-      }
-
-      
       const savedData = localStorage.getItem(storageKey);
+
       if (savedData) {
         const parsed = JSON.parse(savedData);
         setLogText(parsed.logText || '');
         setCohesion(parsed.cohesion || '');
         setEngagement(parsed.engagement || '');
         setAtmosphere(parsed.atmosphere || '');
-        
-        if (parsed.attendance && parsed.attendance.length > 0) {
-          
-          const mergedAttendance = participantsFromDB.map((dbPerson: any) => {
-            const savedPerson = parsed.attendance.find((sp: any) => sp.name === dbPerson.name || sp.id === dbPerson.id);
-            return savedPerson ? savedPerson : dbPerson;
-          });
-          setAttendance(mergedAttendance);
-        } else {
-          setAttendance(participantsFromDB);
-        }
+        setAttendance(parsed.attendance || []);
       } else {
-        setAttendance(participantsFromDB);
+        const groupResult = await getGroupDetails(id);
+        const [summaryResult, notesResult] = await Promise.all([
+          getSessionSummary(id, num),
+          getIndividualNotesBySession(id, num)
+        ]);
+
+        if (groupResult.success && summaryResult.success && notesResult.success) {
+          const participantsFromDB = groupResult.participants.map((p: any) => ({
+            id: p.id,
+            name: p.name_or_code,
+            present: false,
+            notes: '',
+            participationLevel: 0
+          }));
+
+          const mergedAttendance = participantsFromDB.map((p: any) => {
+            const note = notesResult.data?.find((n: any) => n.participant_id === p.id);
+            return note ? { 
+              ...p, 
+              present: true, 
+              notes: note.content, 
+              participationLevel: note.participation_score 
+            } : p;
+          });
+
+          setAttendance(mergedAttendance);
+          setLogText(summaryResult.data?.summary || '');
+          saveToLocal(summaryResult.data?.summary || '', '', '', '', mergedAttendance);
+        }
       }
     } catch (error) {
-      console.error("Failed to load participants:", error);
+      console.error("Failed to load data:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  if (id) loadInitialData();
-}, [id, storageKey]);
-
+  if (id && num) loadInitialData();
+}, [id, num, storageKey]);
   // 2. פונקציית עזר לשמירה אוטומטית
   const saveToLocal = (
     newText: string, 
