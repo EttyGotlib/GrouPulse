@@ -2,12 +2,16 @@
 
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { getGroupDetails, getDashboardData } from '../../lib/api';
+import { getGroupDetails, getDashboardData, getRealInstituteDashboardRealData } from '../../lib/api';
+
+import { supabase } from '../../lib/supabase'; // השורה החדשה שהוספנו כאן
+import InstituteNav from '../../components/ui/InstituteNav'; // ייבוא סרגל המוסד החדש
 
 function AnalyticsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
+  const userType = searchParams.get('userType'); // השורה החדשה שהוספנו כאן
   
   const [allGroups, setAllGroups] = useState<{id: string, name: string}[]>([]);
   const [groupName, setGroupName] = useState('');
@@ -39,10 +43,41 @@ function AnalyticsContent() {
     const fetchAndProcessData = async () => {
       setLoading(true);
       setError('');
-
       const fetchGroups = async () => {
         let serverGroups: {id: string, name: string}[] = [];
         let localGroups: {id: string, name: string}[] = [];
+
+        // 1. פיצול לוגי חסין: אם המשתמש הוא מוסד - נשתמש בפונקציית ה-API הייעודית של המוסד
+        if (userType === 'institute') {
+          try {
+            // קריאה לפונקציה הרשמית שחוי בנתה עבור המוסד שלכם
+            const response = await getRealInstituteDashboardRealData();
+            if (response && response.success && response.data?.groups) {
+              serverGroups = response.data.groups.map((g: any) => ({
+                id: g.id.toString(),
+                name: g.name
+              }));
+            }
+          } catch (e) {
+            console.error("שגיאה במשיכת קבוצות המוסד מה-API:", e);
+          }
+          
+          setAllGroups(serverGroups);
+          return; // עצירה מוחלטת - מוסד מציג רק את קבוצות המוסד שלו
+        }
+
+        // 2. לוגיקת המנחה המקורית שלך (רצה רק אם המשתמש הוא מנחה רגיל)
+        try {
+          const response = await getDashboardData();
+          if (response && response.groups) {
+            serverGroups = response.groups.map((g: any) => ({
+              id: g.id.toString(),
+              name: g.name
+            }));
+          }
+        } catch (e) {
+          console.error("שגיאה במשיכת קבוצות המנחה מהשרת:", e);
+        }
 
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -60,18 +95,6 @@ function AnalyticsContent() {
           }
         }
 
-        try {
-          const response = await getDashboardData();
-          if (response && response.groups) {
-            serverGroups = response.groups.map((g: any) => ({
-              id: g.id.toString(),
-              name: g.name
-            }));
-          }
-        } catch (e) {
-          console.error("שגיאה במשיכת קבוצות מהשרת:", e);
-        }
-
         const combined = [...serverGroups];
         localGroups.forEach(localG => {
           if (!combined.find(serverG => serverG.id === localG.id)) {
@@ -81,7 +104,6 @@ function AnalyticsContent() {
 
         setAllGroups(combined);
       };
-
       fetchGroups();
             
       if (!id) {
@@ -271,7 +293,7 @@ function AnalyticsContent() {
           </div>
           <h1 className="font-bold text-[#003643] text-lg">מרכז אנליטיקה</h1>
         </div>
-        <button onClick={() => router.push('/dashboard')} 
+        <button onClick={() => router.push(userType === 'institute' ? '/institute' : '/dashboard')} 
           className="material-symbols-outlined text-[#003643] p-2 hover:bg-slate-50 rounded-full transition-colors">home
         </button>
       </header>
@@ -281,12 +303,14 @@ function AnalyticsContent() {
         
         {/* בחירת קבוצות - מוסתר בזמן הדפסה (עינב) */}
         <section className="bg-white rounded-[28px] p-4 shadow-sm border border-slate-50 print:hidden">
-          <p className="text-[10px] font-black text-slate-400 mb-3 mr-2 uppercase tracking-widest">הקבוצות שלך</p>
+        <p className="text-[10px] font-black text-slate-400 mb-3 mr-2 uppercase tracking-widest">
+  {userType === 'institute' || allGroups.length > 0 && !localStorage.getItem(`session_log_${allGroups[0]?.id}_1`) ? 'קבוצות המוסד' : 'הקבוצות שלך'}
+</p>
           <div className="flex gap-2 overflow-x-auto no-scrollbar">
             {allGroups.map((group) => (
               <button 
                 key={group.id}
-                onClick={() => router.push(`/analytics?id=${group.id}`)}
+                onClick={() => router.push(`/analytics?id=${group.id}${userType === 'institute' ? '&userType=institute' : ''}`)}
                 className={`px-5 py-2.5 rounded-xl font-bold text-sm transition-all whitespace-nowrap border ${id === group.id ? 'bg-[#003643] text-white' : 'bg-slate-50 text-slate-500 border-transparent'}`}
               >
                 {group.name}
@@ -427,10 +451,24 @@ function AnalyticsContent() {
             <p className="text-slate-400 font-medium italic">בחר קבוצה כדי לצפות בנתונים</p>
           </div>
         )}
-      </main>
-    </div>
-  );
-}
+        </main>
+  
+        {/* התיקון של אתי: אם המשתמש הוא מוסד, נזריק קוד שמסתיר את סרגל המנחה הגלובלי כדי שלא יתערבב */}
+        {userType === 'institute' && (
+          <style dangerouslySetInnerHTML={{ __html: `
+            /* מסתיר את הסרגל התחתון הכללי של המנחה שמגיע מה-Layout */
+            nav, footer, [class*="Navbar"], [class*="navbar"] {
+              display: none !important;
+            }
+          ` }} />
+        )}
+  
+        {/* הצגת סרגל המוסד החדש בתחתית המסך */}
+        {userType === 'institute' && <InstituteNav />}
+      </div>
+    );
+  }
+
 
 export default function AnalyticsPage() {
   return (
