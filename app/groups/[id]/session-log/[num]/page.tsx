@@ -42,6 +42,19 @@ useEffect(() => {
         ]);
 
         if (groupResult.success && summaryResult.success && notesResult.success) {
+          const cohesionMap = { 1: 'נמוכה', 2: 'בינונית', 3: 'גבוהה' };
+          const engagementMap = { 1: 'פאסיבית', 2: 'מאוזנת', 3: 'אינטנסיבית' };
+          const atmosphereMap = { 1: 'מתוחה', 2: 'ניטרלית', 3: 'תומכת' };
+
+          const summaryData = summaryResult.data;
+
+          const newLogText = summaryData?.summary || '';
+          const newCohesion = summaryData ? cohesionMap[summaryData.cohesion] || '' : '';
+          const newEngagement = summaryData ? engagementMap[summaryData.engagement] || '' : '';
+          const newAtmosphere = summaryData ? atmosphereMap[summaryData.atmosphere] || '' : '';
+          
+
+          // עיבוד נוכחות
           const participantsFromDB = groupResult.participants.map((p: any) => ({
             id: p.id,
             name: p.name_or_code,
@@ -60,9 +73,12 @@ useEffect(() => {
             } : p;
           });
 
+          setLogText(newLogText);
+          setCohesion(newCohesion);
+          setEngagement(newEngagement);
+          setAtmosphere(newAtmosphere);
           setAttendance(mergedAttendance);
-          setLogText(summaryResult.data?.summary || '');
-          saveToLocal(summaryResult.data?.summary || '', '', '', '', mergedAttendance);
+          saveToLocal(newLogText, newCohesion, newEngagement, newAtmosphere, mergedAttendance);
         }
       }
     } catch (error) {
