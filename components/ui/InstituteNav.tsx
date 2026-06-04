@@ -16,7 +16,7 @@ export default function InstituteNav() {
     { label: 'מאגר מטופלים', path: '/institute/participants', icon: UserCheck },
     // מוביל לדף האנליטיקה הכללי עם סימון שהמשתמש הוא מוסד
     { label: 'אנליטיקות', path: '/analytics?userType=institute', icon: BarChart3 },
-    { label: 'הגדרות מוסד', path: '/institute/settings', icon: Settings },
+    { label: 'הגדרות מוסד', path: '/settings?userType=institute', icon: Settings },
   ];
 
   return (
