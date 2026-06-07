@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { UserCheck } from 'lucide-react';
 import { getRealInstituteParticipants } from '../../../lib/api';
+import Link from 'next/link';
 
 export default function ParticipantsPage() {
   const [participants, setParticipants] = useState([]);
@@ -49,7 +50,10 @@ export default function ParticipantsPage() {
             <tbody className="divide-y divide-gray-50 text-zinc-700">
               {participants.map((p) => (
                 <tr key={p.id} className="hover:bg-zinc-50/50 transition-colors">
-                  <td className="p-4 font-bold text-[#003643]">{p.name_or_code}</td>
+                <td className="p-4 font-bold text-[#003643]">
+                <Link href={`/participants/${p.id}?viewAs=institute`}>                    {p.name_or_code}
+                  </Link>
+                </td>
                   <td className="p-4">{p.group_name}</td>
                   <td className="p-4 text-zinc-500">{p.identity_number || 'לא הוגדר'}</td>
                   <td className="p-4 text-zinc-500 text-sm">{p.email || 'אין אימייל'}</td>

@@ -1,13 +1,15 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 // ייבוא פונקציית ה-API שלכן (עדכני את הנתיב לקובץ ה-API במידת הצורך)
 import { getParticipantProgress } from '../../../lib/api'; 
 
 export default function ParticipantProfilePage() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
+  const isInstituteView = searchParams.get('viewAs') === 'institute';
 
   // מזהה המשתתף מגיע מה-URL: /participants/[id]
   const participantId = params.id;
@@ -341,6 +343,7 @@ export default function ParticipantProfilePage() {
         </div>
 
         {/* Records List */}
+      {!isInstituteView && (
         <div style={{ marginBottom: '30px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#003643', marginBottom: '20px', textAlign: 'right' }}>ריכוז תיעודים מתוך המפגשים</h2>
           {progressData.length === 0 ? (
@@ -356,7 +359,7 @@ export default function ParticipantProfilePage() {
             ))
           )}
         </div>
-
+        )}
       </div>
     </div>
   );
