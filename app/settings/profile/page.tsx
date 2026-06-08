@@ -1,12 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import InstituteNav from '../../../components/ui/InstituteNav'; // ודאי שהנתיב מתאים לעץ התיקיות שלך
 // ודאי שהנתיב ל-API נכון לפי מבנה התיקיות שלך
 import { getCurrentUserInfo, updateUserInfo } from '../../../lib/api'; 
 
-export default function ProfileSettingsPage() {
+function ProfileSettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userType = searchParams.get('userType'); // חילוץ ה-userType מה-URL
+  const isInstitute = userType === 'institute';
+
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -43,7 +48,8 @@ export default function ProfileSettingsPage() {
     
     if (result.success) {
       alert('הפרטים עודכנו בהצלחה!');
-      router.push('/settings');
+      // חזרה לדף ההגדרות הראשי תוך שמירה על הסטטוס של המוסד במידה והוא מוסד
+      router.push(`/settings${isInstitute ? '?userType=institute' : ''}`);
     } else {
       alert('שגיאה בעדכון הפרטים: ' + result.error);
     }
@@ -65,7 +71,7 @@ export default function ProfileSettingsPage() {
       <main className="max-w-xl mx-auto px-6 pt-10 pb-32">
         <div className="flex flex-col items-center mb-10">
           <div className="relative">
-            <div className="w-28 h-28 rounded-full bg-[#003643] flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg">
+            <div className="w-28 h-28 rounded-full bg-[#003643] flex items-center justify-center text-white text-4xl font-bold border-4 border-white shadow-lg select-none">
               {formData.fullName?.charAt(0) || "?"}
             </div>
           </div>
@@ -103,7 +109,7 @@ export default function ProfileSettingsPage() {
               type="email" 
               value={formData.email}
               readOnly
-              className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-500 cursor-not-allowed"
+              className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-4 text-sm font-bold text-slate-500 cursor-not-allowed select-none"
               dir="ltr"
             />
           </div>
@@ -117,6 +123,30 @@ export default function ProfileSettingsPage() {
           {isSaving ? 'שומר שינויים...' : 'שמור שינויים'}
         </button>
       </main>
+
+      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הכללי במידה והיוזר הוא מוסד */}
+      {isInstitute && (
+        <>
+          <style dangerouslySetInnerHTML={{ __html: `
+            /* מסתיר בכוח את הסרגל התחתון הכללי של המנחה שמגיע מה-Layout */
+            nav, footer, [class*="Navbar"], [class*="navbar"] {
+              display: none !important;
+            }
+          ` }} />
+          
+          <InstituteNav />
+        </>
+      )}
+
     </div>
+  );
+}
+
+// ייצוא העמוד עטוף ב-Suspense כדי למנוע קריסה של useSearchParams ב-Next.js
+export default function ProfileSettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center font-bold text-[#003643]">טוען הגדרות פרופיל...</div>}>
+      <ProfileSettingsContent />
+    </Suspense>
   );
 }

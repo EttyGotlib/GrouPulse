@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import InstituteNav from '../../../components/ui/InstituteNav'; // הנתיב המקורי שלך נשמר
 
-export default function DisplaySettingsPage() {
+function DisplaySettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userType = searchParams.get('userType'); // חילוץ ה-userType מה-URL
+  
   const [theme, setTheme] = useState('light'); // light, dark, system
 
   return (
@@ -74,6 +78,30 @@ export default function DisplaySettingsPage() {
         </section>
 
       </main>
+
+      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הגלובלי במידה והמשתמש הוא מוסד */}
+      {userType === 'institute' && (
+        <>
+          <style dangerouslySetInnerHTML={{ __html: `
+            /* מסתיר את הסרגל התחתון הכללי של המנחה שמגיע מה-Layout */
+            nav, footer, [class*="Navbar"], [class*="navbar"] {
+              display: none !important;
+            }
+          ` }} />
+          
+          <InstituteNav />
+        </>
+      )}
+
     </div>
+  );
+}
+
+// ייצוא העמוד עטוף ב-Suspense כדי למנוע קריסה של useSearchParams
+export default function DisplaySettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center font-bold text-[#003643]">טוען הגדרות תצוגה...</div>}>
+      <DisplaySettingsContent />
+    </Suspense>
   );
 }

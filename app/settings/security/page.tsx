@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { verifyAndUpdatePassword } from '../../../lib/api';
+import InstituteNav from '../../../components/ui/InstituteNav';
 
-export default function SecuritySettingsPage() {
+function SecuritySettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const userType = searchParams.get('userType'); // חילוץ ה-userType מה-URL
+  const isInstitute = userType === 'institute';
+
   const [loading, setLoading] = useState(false);
   const [passwords, setPasswords] = useState({
     current: "",
@@ -35,7 +40,8 @@ export default function SecuritySettingsPage() {
     
     if (result.success) {
       alert("הסיסמה עודכנה בהצלחה!");
-      router.push('/settings');
+      // חזרה לדף ההגדרות הראשי תוך שמירה על הסטטוס של המוסד במידה והוא מוסד
+      router.push(`/settings${isInstitute ? '?userType=institute' : ''}`);
     } else {
       alert("שגיאה: " + result.error);
     }
@@ -105,6 +111,30 @@ export default function SecuritySettingsPage() {
           </button>
         </section>
       </main>
+
+      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הכללי במידה והיוזר הוא מוסד */}
+      {isInstitute && (
+        <>
+          <style dangerouslySetInnerHTML={{ __html: `
+            /* מסתיר בכוח את הסרגל התחתון הכללי של המנחה שמגיע מה-Layout */
+            nav, footer, [class*="Navbar"], [class*="navbar"] {
+              display: none !important;
+            }
+          ` }} />
+          
+          <InstituteNav />
+        </>
+      )}
+
     </div>
+  );
+}
+
+// ייצוא העמוד עטוף ב-Suspense כדי למנוע קריסה של useSearchParams ב-Next.js
+export default function SecuritySettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center font-bold text-[#003643]">טוען הגדרות אבטחה...</div>}>
+      <SecuritySettingsContent />
+    </Suspense>
   );
 }

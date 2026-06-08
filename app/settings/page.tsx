@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import InstituteNav from '../../components/ui/InstituteNav';
 // הוספת signOut לייבוא הקיים
 import { getCurrentUserInfo, signOut } from '../../lib/api'; 
 
-export default function SettingsPage() {
+function SettingsContent() {
   const router = useRouter();
+  // חילוץ הפרמטרים מה-URL
+  const searchParams = useSearchParams();
+  const userType = searchParams.get('userType');
   
   // State לפרטי המשתמש
   const [userData, setUserData] = useState({
@@ -87,10 +91,10 @@ export default function SettingsPage() {
         {/* קטגוריה: חשבון */}
         <section>
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">חשבון ופרופיל</h3>
-          <div onClick={() => router.push('/settings/profile')}>
+          <div onClick={() => router.push(`/settings/profile${userType === 'institute' ? '?userType=institute' : ''}`)}>
             <SettingItem icon="person" title="פרטים אישיים" subtitle="שם, אימייל ומקצוע" />
           </div>          
-          <div onClick={() => router.push('/settings/security')}>
+          <div onClick={() => router.push(`/settings/security${userType === 'institute' ? '?userType=institute' : ''}`)}>
              <SettingItem icon="lock" title="אבטחה" subtitle="שינוי סיסמה ואימות דו-שלבי" />
           </div>          
           <SettingItem icon="notifications" title="התראות" subtitle="ניהול תזכורות למפגשים ויומנים" />
@@ -99,7 +103,7 @@ export default function SettingsPage() {
         {/* קטגוריה: אפליקציה */}
         <section>
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">העדפות אפליקציה</h3>
-          <div onClick={() => router.push('/settings/display')}>
+          <div onClick={() => router.push(`/settings/display${userType === 'institute' ? '?userType=institute' : ''}`)}>
             <SettingItem icon="dark_mode" title="תצוגה" subtitle="מצב כהה ובהיר" />
           </div>          
           <SettingItem icon="palette" title="ערכת נושא" subtitle="התאמת צבעי המערכת" />
@@ -123,6 +127,30 @@ export default function SettingsPage() {
         </section>
 
       </main>
+
+      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הכללי בצורה חסינה במידה והיוזר הוא מוסד */}
+      {userType === 'institute' && (
+        <>
+          <style dangerouslySetInnerHTML={{ __html: `
+            /* מסתיר בכוח את הסרגל התחתון הכללי של המנחה שמגיע מה-Layout */
+            nav, footer, [class*="Navbar"], [class*="navbar"] {
+              display: none !important;
+            }
+          ` }} />
+          
+          <InstituteNav />
+        </>
+      )}
+    
     </div>
+  );
+}
+
+// ייצוא העמוד הראשי עטוף ב-Suspense כדי למנוע קריסה בזמן קריאת הכתובת ב-Next.js
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="p-20 text-center font-bold text-[#003643]">טוען הגדרות...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 }
