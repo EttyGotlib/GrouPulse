@@ -49,26 +49,15 @@ export default function BottomNav() {
           boxShadow: '0 -5px 20px rgba(0,0,0,0.05)'
         }}
       >
+        {/* כפתור בית - כעת ממוקם בצד ימין קיצוני */}
         <NavItem 
-          icon="settings" 
-          label="הגדרות" 
-          active={isActive('/settings')} 
-          onClick={() => router.push('/settings')} 
+          icon="home" 
+          label="בית" 
+          active={isActive('/dashboard')} 
+          onClick={() => router.push('/dashboard')} 
         />
-        <NavItem 
-          icon="analytics" 
-          label="אנליטיקות" 
-          active={isActive('/analytics')} 
-          onClick={() => router.push('/analytics')} 
-        />
-        <NavItem 
-          icon="calendar_month" 
-          label="יומן" 
-          active={isActive('/calendar')} 
-          onClick={() => router.push('/calendar')} 
-        />
-        
-        {/* כפתור "הקבוצות שלי" מאוחד - מפנה לדף החדש ודלוק בכל המקרים שביקשת */}
+
+        {/* כפתור "הקבוצות שלי" מאוחד - מופיע שני מימין */}
         <NavItem 
           icon="group" 
           label="הקבוצות שלי" 
@@ -80,11 +69,28 @@ export default function BottomNav() {
           onClick={() => router.push('/dashboard/groups')} 
         />
 
+        {/* כפתור יומן - מופיע במרכז */}
         <NavItem 
-          icon="home" 
-          label="בית" 
-          active={isActive('/dashboard')} 
-          onClick={() => router.push('/dashboard')} 
+          icon="calendar_month" 
+          label="יומן" 
+          active={isActive('/calendar')} 
+          onClick={() => router.push('/calendar')} 
+        />
+        
+        {/* כפתור אנליטיקות - מופיע שני משמאל */}
+        <NavItem 
+          icon="analytics" 
+          label="אנליטיקות" 
+          active={isActive('/analytics')} 
+          onClick={() => router.push('/analytics')} 
+        />
+
+        {/* כפתור הגדרות - כעת ממוקם בצד שמאל קיצוני, בדיוק כמו במוסד */}
+        <NavItem 
+          icon="settings" 
+          label="הגדרות" 
+          active={isActive('/settings')} 
+          onClick={() => router.push('/settings')} 
         />
       </nav>
     </>
@@ -98,6 +104,7 @@ function NavItem({ icon, label, active, onClick }: any) {
       style={{ 
         display: 'flex', 
         flexDirection: 'column', 
+        alignDirection: 'rtl',
         alignItems: 'center', 
         gap: '5px', 
         color: active ? '#003643' : '#999', 
