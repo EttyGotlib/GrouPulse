@@ -26,8 +26,12 @@ export default function InstituteNav() {
         {navItems.map((item) => {
           const Icon = item.icon;
           
-          // בדיקה האם הטאב פעיל (מתחשב גם בפרמטרים של ה-URL באנליטיקות)
-          const isActive = pathname === item.path || (item.path.startsWith('/analytics') && pathname === '/analytics');
+          // בדיקה דינמית וחכמה האם הטאב פעיל (תומכת גם בדפים פנימיים וגם בפרמטרי URL)
+          const isActive = 
+            pathname === item.path || 
+            (item.path.startsWith('/analytics') && pathname === '/analytics') ||
+            (item.path.includes('participants') && pathname.includes('participants')) ||
+            (item.path.includes('settings') && pathname.includes('settings'));
 
           return (
             <button
