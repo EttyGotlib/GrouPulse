@@ -1,15 +1,18 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 // ייבוא פונקציית ה-API שלכן (עדכני את הנתיב לקובץ ה-API במידת הצורך)
 import { getParticipantProgress } from '../../../lib/api'; 
+import InstituteNav from '../../../components/ui/InstituteNav';
 
-export default function ParticipantProfilePage() {
+function ParticipantProfileContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
   const isInstituteView = searchParams.get('viewAs') === 'institute';
+  const userType = searchParams.get('userType'); // חילוץ ה-userType מה-URL
+  const isInstitute = userType === 'institute' || isInstituteView;
 
   // מזהה המשתתף מגיע מה-URL: /participants/[id]
   const participantId = params.id;
@@ -167,7 +170,7 @@ export default function ParticipantProfilePage() {
     : "0";
 
   if (loading) {
-    return <div style={{ textAlign: 'center', padding: '50px', direction: 'rtl' }}>טוען נתונים מ-Supabase...</div>;
+    return <div style={{ textAlign: 'center', padding: '50px', direction: 'rtl', fontWeight: 'bold' }}>טוען נתונים מ-Supabase...</div>;
   }
 
   if (fallbackActive) {
@@ -186,12 +189,24 @@ export default function ParticipantProfilePage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', backgroundColor: 'white', borderBottom: '1px solid #eee' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eee', overflow: 'hidden' }}>
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${participantId}`} alt="avatar" />
-          </div>
+        <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#e2f8fc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#003643', fontWeight: 'bold', fontSize: '16px' }}>
+  {participantName ? participantName.charAt(0).toUpperCase() : '?'}
+</div>
           <span style={{ fontWeight: 'bold', color: '#003643', fontSize: '18px' }}>Participant Insight</span>
         </div>
-        <span className="material-symbols-outlined" style={{ color: '#003643', cursor: 'pointer' }} onClick={() => router.back()}>arrow_forward</span>
+        <span 
+          className="material-symbols-outlined" 
+          style={{ color: '#003643', cursor: 'pointer' }} 
+          onClick={() => {
+            if (isInstitute) {
+              router.push('/institute/participants?userType=institute');
+            } else {
+              router.back();
+            }
+          }}
+        >
+          arrow_forward
+        </span>
       </div>
 
       {/* Main Container */}
@@ -343,24 +358,39 @@ export default function ParticipantProfilePage() {
         </div>
 
         {/* Records List */}
-      {!isInstituteView && (
-        <div style={{ marginBottom: '30px' }}>
-          <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#003643', marginBottom: '20px', textAlign: 'right' }}>ריכוז תיעודים מתוך המפגשים</h2>
-          {progressData.length === 0 ? (
-            <p style={{ textAlign: 'right', color: '#64748b' }}>לא נמצאו תיעודים בבסיס הנתונים עבור משתתף זה.</p>
-          ) : (
-            progressData.map((record: any, index: number) => (
-              <RecordCard 
-                key={index} 
-                meeting={`מפגש ${record.session_id}`} 
-                date={new Date(record.created_at).toLocaleDateString('he-IL')} 
-                text={record.content} 
-              />
-            ))
-          )}
-        </div>
+        {!isInstituteView && (
+          <div style={{ marginBottom: '30px' }}>
+            <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#003643', marginBottom: '20px', textAlign: 'right' }}>ריכוז תיעודים מתוך המפגשים</h2>
+            {progressData.length === 0 ? (
+              <p style={{ textAlign: 'right', color: '#64748b' }}>לא נמצאו תיעודים בבסיס הנתונים עבור משתתף זה.</p>
+            ) : (
+              progressData.map((record: any, index: number) => (
+                <RecordCard 
+                  key={index} 
+                  meeting={`מפגש ${record.session_id}`} 
+                  date={new Date(record.created_at).toLocaleDateString('he-IL')} 
+                  text={record.content} 
+                />
+              ))
+            )}
+          </div>
         )}
       </div>
+
+      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הכללי במידה והיוזר הוא מוסד */}
+      {isInstitute && (
+        <>
+          <style dangerouslySetInnerHTML={{ __html: `
+            /* מסתיר בכוח את הסרגל התחתון הכללי של המנחה שמגיע מה-Layout */
+            nav, footer, [class*="Navbar"], [class*="navbar"] {
+              display: none !important;
+            }
+          ` }} />
+          
+          <InstituteNav />
+        </>
+      )}
+
     </div>
   );
 }
@@ -386,5 +416,14 @@ function RecordCard({ meeting, date, text }: any) {
       </div>
       <p style={{ fontSize: '15px', color: '#41484b', lineHeight: '1.6', textAlign: 'right' }}>{text || "לא נכתב תיעוד במפגש זה."}</p>
     </div>
+  );
+}
+
+// ייצוא העמוד עטוף ב-Suspense כדי למנוע קריסה של useSearchParams ב-Next.js
+export default function ParticipantProfilePage() {
+  return (
+    <Suspense fallback={<div style={{ textAlign: 'center', padding: '50px', direction: 'rtl', fontWeight: 'bold' }}>טוען נתוני פרופיל...</div>}>
+      <ParticipantProfileContent />
+    </Suspense>
   );
 }
