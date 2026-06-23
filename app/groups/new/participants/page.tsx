@@ -11,7 +11,6 @@ export default function AddParticipantPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileName, setFileName] = useState('');
 
-  // State לשמירת פרטי המשתתף
   const [fullName, setFullName] = useState('');
   const [idNumber, setIdNumber] = useState('');
   const [email, setEmail] = useState('');
@@ -55,12 +54,11 @@ export default function AddParticipantPage() {
     if (!validateForm()) return;
   
     if (groupId) {
-      // --- הוספה לקבוצה קיימת דרך ה-API ---
       const result = await addSingleParticipant(groupId, { fullName, idNumber, email, phone });
       
       if (result.success) {
-        router.push(`/groups/${groupId}`); // חזרה לדף הקבוצה
-        router.refresh(); // רענון כדי לראות את המשתתף החדש מיד
+        router.push(`/groups/${groupId}`); 
+        router.refresh(); 
       } else {
         alert('שגיאה בשמירה: ' + result.error);
       }
@@ -74,7 +72,6 @@ export default function AddParticipantPage() {
   };
 
   return (
-    // השינוי כאן: הוספנו paddingBottom כדי שהסרגל הגלובלי לא יסתיר את הכפתורים
     <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '140px' }}>
       
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', backgroundColor: 'white' }}>

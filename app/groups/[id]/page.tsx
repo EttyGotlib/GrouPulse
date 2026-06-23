@@ -36,7 +36,7 @@ export default function GroupDetailsPage() {
   return (
     <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '120px' }}>
       
-      {/* Header */}
+      {}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', backgroundColor: 'white', borderBottom: '1px solid #eee' }}>
         <span className="material-symbols-outlined" style={{ color: '#003643', cursor: 'pointer' }}>more_vert</span>
         <span style={{ fontWeight: 'bold', color: '#003643', fontSize: '18px' }}>קבוצה: {groupData.name}</span>
@@ -45,7 +45,7 @@ export default function GroupDetailsPage() {
 
       <div style={{ width: '100%', maxWidth: '1200px', margin: '0 auto', padding: '30px 40px' }}>
         
-        {/* Top Section */}
+        {}
         <div style={{ display: 'grid', gridTemplateColumns: '1.5fr 1fr', gap: '20px', marginBottom: '30px' }}>
           <div style={{ backgroundColor: 'white', borderRadius: '24px', padding: '30px', boxShadow: '0 4px 12px rgba(0,0,0,0.03)', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
             <h1 style={{ fontSize: '28px', fontWeight: '900', color: '#003643', marginBottom: '15px' }}>{groupData.name}</h1>
@@ -75,7 +75,7 @@ export default function GroupDetailsPage() {
           </div>
         </div>
 
-        {/* Participants Section */}
+        {}
         <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <button onClick={() => router.push(`/groups/new/participants?groupId=${groupData.id}`)} style={{ backgroundColor: '#003643', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '14px', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
@@ -90,7 +90,7 @@ export default function GroupDetailsPage() {
           </div>
         </div>
 
-        {/* ניהול מפגשים */}
+        {}
         <div style={{ marginBottom: '40px' }}>
           <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#003643', marginBottom: '25px' }}>ניהול מפגשים</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '20px' }}>
@@ -137,7 +137,7 @@ function MeetingCard({ num, isNext, groupId, router }: any) {
           >
             הכנה למפגש
           </button>
-          {/* הכפתור המעודכן */}
+          {}
           <button 
             onClick={() => router.push(`/groups/${groupId}/session-log/${num}`)}
             style={{ 

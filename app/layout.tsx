@@ -11,10 +11,8 @@ export default function RootLayout({
 }) {
   const pathname = usePathname();
 
-  // רשימת הדפים שבהם לא נציג את הסרגל בכלל (כמו דפי כניסה והרשמה)
   const noNavPages = ['/login', '/register', '/reset-password'];
   
-  // המנחה יראה את הסרגל שלו בכל הדפים הרגילים, חוץ מדפי התחברות ומדפי המוסד
   const isInstitutePage = pathname?.startsWith('/institute');
   const showNav = !noNavPages.includes(pathname) && !isInstitutePage;
 

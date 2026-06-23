@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import { useRouter } from 'next/navigation';
-// @ts-ignore
-import { getAllModeratorSessions } from '../../lib/api'; // ודאי שהנתיב תואם למבנה שלך
+import { getAllModeratorSessions } from '../../lib/api'; 
 
 export default function CalendarPage() {
   const router = useRouter();
@@ -30,7 +29,7 @@ export default function CalendarPage() {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen font-sans pb-32 flex flex-col items-center">
       
-      {/* Header */}
+      {}
       <header className="bg-white w-full h-16 flex justify-center border-b border-slate-100 shadow-sm shrink-0">
         <div className="max-w-4xl w-full px-6 flex items-center justify-between">
           <h1 className="text-xl font-extrabold text-[#003643]">היומן שלי</h1>
@@ -42,7 +41,7 @@ export default function CalendarPage() {
 
       <main className="max-w-4xl w-full px-4 pt-8 flex flex-col gap-8">
         
-        {/* לוח שנה - מרכזי וגדול */}
+        {}
         <section className="bg-white rounded-[40px] shadow-md border border-slate-50 p-6 md:p-10 w-full">
           <Calendar
             onChange={onChange}
@@ -59,7 +58,7 @@ export default function CalendarPage() {
           />
         </section>
 
-        {/* רשימת פגישות */}
+        {}
         <section className="space-y-4 w-full">
           <div className="flex justify-between items-center mb-4 px-4">
             <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest">פגישות ליום שנבחר</h3>
@@ -74,7 +73,7 @@ export default function CalendarPage() {
             sessionsForDay.map((session: any) => (
               <div key={`${session.id}-${session.num}`} className="bg-white p-5 rounded-[32px] shadow-sm border border-slate-50 flex flex-col md:flex-row items-center justify-between gap-6 transition-all hover:shadow-md">
                 
-                {/* פרטי המפגש */}
+                {}
                 <div className="flex items-center gap-4 w-full md:w-auto">
                   <div className="bg-[#32666d]/10 p-4 rounded-2xl text-center min-w-[70px] border border-[#32666d]/5">
                     <span className="text-lg font-black text-[#32666d]">{session.time}</span>
@@ -89,7 +88,7 @@ export default function CalendarPage() {
                   </div>
                 </div>
 
-                {/* כפתורי פעולה מודגשים */}
+                {}
                 <div className="flex gap-3 w-full md:w-auto justify-end">
                   <button 
                     onClick={() => router.push(`/groups/${session.id}/preparation/${session.num}`)}
@@ -124,7 +123,7 @@ export default function CalendarPage() {
         </section>
       </main>
 
-      {/* CSS גלובלי ללוח השנה */}
+      {}
       <style jsx global>{`
         .calendar-large {
           width: 100% !important;

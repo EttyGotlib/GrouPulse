@@ -10,15 +10,14 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState(''); 
-  const [institutionCode, setInstitutionCode] = useState(''); // שדה קוד מוסד חדש
+  const [institutionCode, setInstitutionCode] = useState(''); 
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // פונקציה אמינה ליצירת קוד מוסד באנגלית בלבד למניעת בעיות קידוד
   const generateRandomCode = () => {
-    const randomNum = Math.floor(1000 + Math.random() * 9000); // 4 ספרות אקראיות
-    return `INST-${randomNum}`; // דוגמה לתוצאה: INST-5900
+    const randomNum = Math.floor(1000 + Math.random() * 9000); 
+    return `INST-${randomNum}`; 
   };
 
   const handleRegister = async (e: React.FormEvent) => {
@@ -29,25 +28,22 @@ export default function RegisterPage() {
     let finalInstitutionId = null;
     let generatedCodeForInstitution = null;
 
-    // --- שלב 1: בדיקת קוד מוסד מראש (לפני שנוגעים ב-Auth) ---
     if (practiceType === 'private' && institutionCode.trim() !== '') {
       try {
-        // הפיכת הקוד לאותיות גדולות וניקוי רווחים קיצוניים
         const cleanCode = institutionCode.trim().toUpperCase();
 
         const { data: instProfile, error: searchError } = await supabase
           .from('Profiles')
           .select('id')
-          .ilike('institution_code', cleanCode) // מתעלם מאותיות קטנות/גדולות ושגיאות כתיב
+          .ilike('institution_code', cleanCode) 
           .eq('role', 'institution')
           .maybeSingle();
 
         if (searchError) throw searchError;
 
         if (instProfile) {
-          finalInstitutionId = instProfile.id; // הקוד תקין, שומרים את ה-ID שלו
+          finalInstitutionId = instProfile.id;
         } else {
-          // אם הקוד שגוי, עוצרים פה ולא פותחים יוזר ב-Auth
           setErrorMsg('קוד המוסד שהוזן אינו קיים במערכת. אנא בדקו את הקוד שוב.');
           setLoading(false);
           return;
@@ -60,12 +56,10 @@ export default function RegisterPage() {
       }
     }
 
-    // אם סוג הרישום הוא מוסד - מייצרים לו את הקוד החדש והנקי
     if (practiceType === 'institution') {
       generatedCodeForInstitution = generateRandomCode();
     }
 
-    // --- שלב 2: הרשמה ל-Supabase Auth (רק אחרי שהקוד אומת בהצלחה) ---
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -87,7 +81,6 @@ export default function RegisterPage() {
       return;
     }
 
-    // --- שלב 3: יצירת הפרופיל בטבלת Profiles ---
     if (data.user) {
       try {
         const { error: profileError } = await supabase
@@ -99,7 +92,7 @@ export default function RegisterPage() {
               email: email,
               role: practiceType === 'institution' ? 'institution' : 'moderator',
               institution_code: generatedCodeForInstitution,
-              institution_id: finalInstitutionId // יישמר במדויק בטבלה
+              institution_id: finalInstitutionId 
             }
           ]);
 
@@ -193,7 +186,6 @@ export default function RegisterPage() {
             />
           </div>
 
-          {/* שדה אופציונלי לקוד מוסד - יוצג אך ורק עבור רישום מנחים/מטפלים */}
           {practiceType === 'private' && (
             <div className="space-y-1.5 text-right animate-fadeIn">
               <label className="text-sm font-medium text-gray-700 px-1 flex justify-between flex-row-reverse">

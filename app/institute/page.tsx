@@ -26,13 +26,11 @@ export default function InstituteDashboard() {
       try {
         setLoading(true);
 
-        // 1. שליפת שם המכון
         const nameRes = await getRealInstitutionName();
         if (nameRes && nameRes.success) {
             setInstituteName(nameRes.name);
         }
 
-        // 2. שליפת הנתונים הסטטיסטיים דרך הפונקציה המוכנה
         const statsData = await getInstituteStats();
         
         if (statsData) {

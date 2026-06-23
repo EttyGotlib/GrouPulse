@@ -37,7 +37,6 @@ export default function DashboardPage() {
     fetchData();
   }, []);
 
-  // מנוע ההתראות המבוסס על הנתונים האמיתיים שלך
   const generateAlerts = () => {
     const alerts = [];
 
@@ -96,7 +95,7 @@ export default function DashboardPage() {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
              <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#003643', overflow: 'hidden' }}>
-                {/* התיקון כאן: עטיפת ה-userName ב-encodeURIComponent כדי למנוע את קריסת ה-ByteString */}
+                {}
                 <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=003643&color=fff`} style={{ width: '100%' }} alt="פרופיל" />
              </div>
              <span style={{ fontWeight: '800', color: '#003643', fontSize: '18px' }}>GrouPulse</span>
@@ -113,7 +112,7 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          {/* תיבת ההתראות הדינמית - מיושרת לימין בצורה מושלמת */}
+          {}
           <div style={{ backgroundColor: '#1e4d5b', borderRadius: '24px', padding: '30px', color: 'white', marginBottom: '40px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', justifyContent: 'flex-start', flexDirection: 'row-reverse', marginBottom: '15px' }}>
               <span className="material-symbols-outlined" style={{ color: '#b7ecf3' }}>campaign</span>

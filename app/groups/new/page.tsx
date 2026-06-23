@@ -9,7 +9,6 @@ export default function NewGroupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   
-  // State לניהול הטופס
   const [groupName, setGroupName] = useState('');
   const [groupType, setGroupType] = useState('קבוצת תמיכה');
   const [meeting_time, setMeetingTime] = useState(''); 
@@ -19,7 +18,6 @@ export default function NewGroupPage() {
   const [meeting_day, setMeetingDay] = useState('');
   const [location_notes, setLocationNotes] = useState('');
 
-  // 1. שונה: טעינת *כל* הנתונים מהזיכרון ברגע שהדף עולה מחדש
   useEffect(() => {
     const savedName = localStorage.getItem('temp_group_name');
     const savedType = localStorage.getItem('temp_group_type');
@@ -40,7 +38,6 @@ export default function NewGroupPage() {
     setLocationNotes(savedLocationNotes || '');
   }, []);
 
-  // 2. פונקציות עזר לשמירה מיידית בזיכרון בזמן שינוי
   const handleNameChange = (val: string) => {
     setGroupName(val);
     localStorage.setItem('temp_group_name', val);
@@ -56,7 +53,6 @@ export default function NewGroupPage() {
     localStorage.setItem('temp_session_count', newCount.toString());
   };
 
-  // שונה: הוספת פונקציות שמירה לשדות החדשים כדי שלא יימחקו במעבר דפים
   const handleTimeChange = (val: string) => {
     setMeetingTime(val);
     localStorage.setItem('temp_meeting_time', val);
@@ -96,7 +92,6 @@ export default function NewGroupPage() {
       );
   
       if (result.success) {
-        // אם השמירה הצליחה - מנקים את *כל* הזיכרון המקומי ששמרנו
         localStorage.removeItem('temp_participants');
         localStorage.removeItem('temp_group_name');
         localStorage.removeItem('temp_group_type');
@@ -122,7 +117,7 @@ export default function NewGroupPage() {
   return (
     <div style={{ backgroundColor: '#f8faff', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', paddingBottom: '140px' }}>
       
-      {/* Header */}
+      {}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px', backgroundColor: 'white', borderBottom: '1px solid #eee' }}>
         <span className="material-symbols-outlined" style={{ color: '#003643' }}>more_vert</span>
         <span style={{ fontWeight: 'bold', color: '#003643' }}>קבוצה חדשה</span>
@@ -136,13 +131,13 @@ export default function NewGroupPage() {
           <p style={{ color: '#41484b', fontSize: '15px' }}>הגדר את פרטי הקבוצה החדשה כדי להתחיל.</p>
         </div>
 
-        {/* שם קבוצה */}
+        {}
         <div style={cardStyle}>
           <label style={labelStyle}>שם הקבוצה</label>
           <input type="text" placeholder="לדוגמה: התמודדות עם חרדה" style={inputStyle} value={groupName} onChange={(e) => handleNameChange(e.target.value)} />
         </div>
 
-        {/* סוג קבוצה */}
+        {}
         <div style={cardStyle}>
           <label style={labelStyle}>סוג הקבוצה</label>
           <select value={groupType} onChange={(e) => handleTypeChange(e.target.value)} style={inputStyle}>
@@ -152,7 +147,7 @@ export default function NewGroupPage() {
           </select>
         </div>
 
-        {/* שעת המפגש - שונה: מחובר לפונקציית השמירה החדשה */}
+        {}
         <div style={cardStyle}>
           <label style={labelStyle}>באיזה שעה מתקיים המפגש?</label>
           <input 
@@ -163,7 +158,7 @@ export default function NewGroupPage() {
           />
         </div>
 
-        {/* מונה מפגשים */}
+        {}
         <div style={cardStyle}>
           <label style={labelStyle}>מספר מפגשים מתוכנן</label>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#e9eef5', borderRadius: '12px', padding: '8px' }}>
@@ -173,13 +168,13 @@ export default function NewGroupPage() {
           </div>
         </div>
 
-        {/* תאריך התחלה - שונה: מחובר לפונקציית השמירה החדשה */}
+        {}
         <div style={cardStyle}>
           <label style={labelStyle}>מתי תאריך ההתחלה?</label>
           <input type="date" style={inputStyle} value={start_date} onChange={(e) => handleStartDateChange(e.target.value)} />
         </div>
 
-        {/* יום המפגש - שונה: מחובר לפונקציית השמירה החדשה */}
+        {}
         <div style={cardStyle}>
           <label style={labelStyle}>מה יום המפגש הקבוע?</label>
           <select 
@@ -197,7 +192,7 @@ export default function NewGroupPage() {
           </select>
         </div>
 
-        {/* הערות ללו"ז - שונה: מחובר לפונקציית השמירה החדשה */}
+        {}
         <div style={cardStyle}>
           <label style={labelStyle}>הערות ללו"ז ומיקום</label>
           <textarea 
@@ -208,7 +203,7 @@ export default function NewGroupPage() {
           />
         </div>
 
-        {/* תצוגת משתתפים שנוספו */}
+        {}
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '15px' }}>
           {participants.map((p, index) => (
             <div key={index} style={{ backgroundColor: '#cff0f6', color: '#003643', padding: '6px 12px', borderRadius: '20px', fontSize: '12px', fontWeight: 'bold' }}>
@@ -233,7 +228,6 @@ export default function NewGroupPage() {
   );
 }
 
-// רכיבי עזר לעיצוב
 const cardStyle = { backgroundColor: 'white', borderRadius: '20px', padding: '20px', marginBottom: '15px', boxShadow: '0 2px 8px rgba(0,0,0,0.03)' };
 const labelStyle = { display: 'block', fontWeight: 'bold', color: '#003643', marginBottom: '10px', fontSize: '14px' };
 const inputStyle = { width: '100%', padding: '15px', borderRadius: '12px', border: 'none', backgroundColor: '#e9eef5', outline: 'none' };

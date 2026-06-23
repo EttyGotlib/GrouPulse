@@ -8,7 +8,7 @@ import InstituteNav from '../../../components/ui/InstituteNav';
 function SecuritySettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userType = searchParams.get('userType'); // חילוץ ה-userType מה-URL
+  const userType = searchParams.get('userType');
   const isInstitute = userType === 'institute';
 
   const [loading, setLoading] = useState(false);
@@ -35,12 +35,10 @@ function SecuritySettingsContent() {
     }
 
     setLoading(true);
-    // שליחה לפונקציית האימות והעדכון המשולבת
     const result = await verifyAndUpdatePassword(passwords.current, passwords.new);
     
     if (result.success) {
       alert("הסיסמה עודכנה בהצלחה!");
-      // חזרה לדף ההגדרות הראשי תוך שמירה על הסטטוס של המוסד במידה והוא מוסד
       router.push(`/settings${isInstitute ? '?userType=institute' : ''}`);
     } else {
       alert("שגיאה: " + result.error);
@@ -62,7 +60,7 @@ function SecuritySettingsContent() {
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-6 px-2">אימות ושינוי סיסמה</h3>
           
           <div className="space-y-4">
-            {/* סיסמה נוכחית - חובה לאבטחה */}
+            {}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-[#003643] pr-2">סיסמה נוכחית</label>
               <input 
@@ -77,7 +75,7 @@ function SecuritySettingsContent() {
 
             <div className="h-px bg-slate-100 my-2 mx-4"></div>
 
-            {/* סיסמה חדשה */}
+            {}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-[#003643] pr-2">סיסמה חדשה</label>
               <input 
@@ -89,7 +87,7 @@ function SecuritySettingsContent() {
               />
             </div>
 
-            {/* אימות סיסמה */}
+            {}
             <div className="flex flex-col gap-2">
               <label className="text-xs font-bold text-[#003643] pr-2">אימות סיסמה חדשה</label>
               <input 
@@ -112,7 +110,7 @@ function SecuritySettingsContent() {
         </section>
       </main>
 
-      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הכללי במידה והיוזר הוא מוסד */}
+      {}
       {isInstitute && (
         <>
           <style dangerouslySetInnerHTML={{ __html: `
@@ -130,7 +128,6 @@ function SecuritySettingsContent() {
   );
 }
 
-// ייצוא העמוד עטוף ב-Suspense כדי למנוע קריסה של useSearchParams ב-Next.js
 export default function SecuritySettingsPage() {
   return (
     <Suspense fallback={<div className="p-20 text-center font-bold text-[#003643]">טוען הגדרות אבטחה...</div>}>
