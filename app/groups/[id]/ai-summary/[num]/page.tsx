@@ -3,15 +3,22 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 
+/**
+ * AiSummaryPage Component
+ * Renders a comprehensive, AI-generated session summary dashboard.
+ * Extracts raw session logs from local storage, hits an internal Gemini API endpoint
+ * to compute metrics, handles client-side caching, and permits manual text insights.
+ */
 export default function AiSummaryPage() {
   const router = useRouter();
   const { id, num } = useParams();
   
+  // --- Storage Resolution Keys ---
   const logStorageKey = `session_log_${id}_${num}`;
   const manualKey = `ai_manual_insights_${id}_${num}`;
   const groupDataKey = `group_data_${id}`;
 
-
+// --- React State Architecture ---
   const [groupName, setGroupName] = useState('');
 
   const [aiData, setAiData] = useState<any>(null);
@@ -28,11 +35,16 @@ export default function AiSummaryPage() {
   useEffect(() => {
     setIsMounted(true);
     
+    /**
+     * Orchestrates dynamic summary creation. Validates underlying data requirements, Checks 
+     * local verification cache configurations, runs rate-limiting logic, and queries upstream AI routes.
+     */
     const fetchAiSummary = async () => {
       if (!id || !num) return;
 
       setIsLoading(true);
       try {
+        // Fetch baseline session data records
         const rawDataString = localStorage.getItem(logStorageKey);
         if (!rawDataString) {
           setHasData(false);
@@ -40,6 +52,13 @@ export default function AiSummaryPage() {
           return;
         }
 
+        // Fix: Load any previously persisted manual insights on initialization
+        const savedManualText = localStorage.getItem(manualKey);
+        if (savedManualText) {
+          setManualText(savedManualText);
+        }
+
+        // Fetch meta details mapping explicit group structures
         const groupDataRaw = localStorage.getItem(groupDataKey);
         let currentGroupName = "קבוצה כללית";
         if (groupDataRaw) {
@@ -48,6 +67,7 @@ export default function AiSummaryPage() {
         }
         setGroupName(currentGroupName); 
        
+        // Verify structural cache optimization metrics
         const cacheKey = `ai_cache_${id}_${num}`;
         const cachedAiData = localStorage.getItem(cacheKey);
         
@@ -61,6 +81,7 @@ export default function AiSummaryPage() {
           }
         }
 
+        // Enforce a strict 30-second client-side request rate limiter
         const lastCallKey = `ai_last_call_${id}_${num}`;
         const lastCall = localStorage.getItem(lastCallKey);
 
@@ -72,6 +93,7 @@ export default function AiSummaryPage() {
 
         setIsLoading(true);
       
+        // Fetch analysis from internal Gemini Generation Route Handler
         const response = await fetch('/api/gen-summary', {
           method: 'POST',
           headers: {
@@ -165,22 +187,32 @@ export default function AiSummaryPage() {
     };
 
     fetchAiSummary();
+    // Fix: Removed 'manualKey' from dependency array to prevent unwanted re-fetching on manual save
   }, [id, num, logStorageKey, manualKey]);
 
+  /**
+   * Persists customized user observations locally to local storage.
+   */
   const handleSave = () => {
     localStorage.setItem(manualKey, manualText);
     setIsEditing(false);
   };
 
+  /**
+   * Invokes native web engine print behaviors to output standard summary PDFs.
+   */
   const handlePrint = () => window.print();
 
+  /**
+   * Navigates back to the group overview page.
+   */
   const handleGoBack = () => {
     if (isMounted) {
       router.push(`/groups/${id}`);
     }
   };
   
-
+  // --- Early Render Guards ---
   if (isLoading) return (
     <div className="min-h-screen flex flex-col items-center justify-center font-sans text-[#003643] gap-4">
       <div className="w-12 h-12 border-4 border-[#b7ecf3] border-t-[#003643] rounded-full animate-spin"></div>
@@ -208,7 +240,7 @@ export default function AiSummaryPage() {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f] print:bg-white print:pb-0">
       
-      {}
+      {/* Application Toolbar */}
       <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-100 px-6 py-4 flex flex-row-reverse justify-between items-center print:hidden">
         <div className="flex items-center gap-3">
             <button onClick={handlePrint} className="bg-[#003643] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-[#004d5f] transition-colors">
@@ -222,14 +254,14 @@ export default function AiSummaryPage() {
 
       <main className="max-w-2xl mx-auto px-6 pt-8 space-y-6 print:pt-0 print:max-w-full">
         
-        {}
+        {/* Dynamic Context Header */}
         <div className="text-center md:text-right space-y-2 pt-4">
             <span className="text-[#32666d] text-xs font-bold uppercase tracking-widest print:text-black">ניתוח מערכת AI</span>
             <h2 className="text-3xl font-black text-[#003643] print:text-black">סיכום מפגש מבוסס AI</h2>
             <p className="text-slate-500 text-sm font-medium">קבוצה: {groupName} - מפגש {num}</p>
         </div>
 
-        {}
+        {/* AI Key Insights Module */}
         <section className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-50 print:border-slate-200">
             <h3 className="font-bold text-[#003643] text-xl mb-6 print:text-black flex items-center gap-2">
               <span className="material-symbols-outlined print:hidden text-[#32666d]">lightbulb</span> תובנות מפתח
@@ -244,7 +276,7 @@ export default function AiSummaryPage() {
             </ul>
         </section>
 
-        {}
+        {/* Group Cohesion Progress Visualizer */}
         <section className="bg-[#f1f4f8] rounded-[32px] p-8 border border-slate-100 print:bg-white print:border-slate-200">
             <h3 className="font-bold text-[#003643] text-xl mb-6 print:text-black flex items-center gap-2">
               <span className="material-symbols-outlined print:hidden text-[#32666d]">group</span> דינמיקה קבוצתית
@@ -262,7 +294,7 @@ export default function AiSummaryPage() {
             </div>
         </section>
 
-        {}
+        {/* Dynamic Individual Highlights Module */}
         <section className="space-y-4">
             <h3 className="font-bold text-[#003643] text-xl px-1 print:text-black flex items-center gap-2">
               <span className="material-symbols-outlined print:hidden text-[#32666d]">person_search</span> דגשים פרטניים
@@ -279,7 +311,7 @@ export default function AiSummaryPage() {
             </div>
         </section>
 
-        {}
+        {/* Dynamic Facilitator Notes Integration Component */}
         <section className={`space-y-3 ${!manualText && !isEditing && 'print:hidden'}`}>
             <h3 className="font-bold text-[#32666d] text-sm px-1 flex items-center gap-2 print:hidden">
               <span className="material-symbols-outlined">edit_note</span> הערות ותובנות ידניות

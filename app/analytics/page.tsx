@@ -7,12 +7,19 @@ import { getGroupDetails, getDashboardData, getRealInstituteDashboardRealData } 
 import { supabase } from '../../lib/supabase'; // השורה החדשה שהוספנו כאן
 import InstituteNav from '../../components/ui/InstituteNav'; // ייבוא סרגל המוסד החדש
 
+/**
+ * AnalyticsContent Component
+ * core analytics dashboard rendering multi-dimensional performance metrics for groups.
+ * Processes real-time database inputs, local cached session logs, and AI-generated insights,
+ * separating logic workflows seamlessly between standard hosts/facilitators and institutional accounts.
+ */
 function AnalyticsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
   const userType = searchParams.get('userType'); // השורה החדשה שהוספנו כאן
   
+  // --- State Architecture ---
   const [allGroups, setAllGroups] = useState<{id: string, name: string}[]>([]);
   const [groupName, setGroupName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -34,23 +41,32 @@ function AnalyticsContent() {
     trends: { cohesion: 'stable', engagement: 'stable', atmosphere: 'stable' }
   });
 
-  // פונקציית ההדפסה של אתי
+  /**
+   * Triggers the native browser print dialog to export the current view as a PDF report.
+   */
   const handlePrint = () => {
     window.print();
   };
 
   useEffect(() => {
+    /**
+     * Primary data orchestrator. Fetches contextual group categories based on authorization layers,
+     * aggregates hybrid data points from localStorage & remote APIs, and computes mathematical matrices.
+     */
     const fetchAndProcessData = async () => {
       setLoading(true);
       setError('');
+
+      /**
+       * Sub-routine targeting group lists resolution based on explicit account scope configurations.
+       */
       const fetchGroups = async () => {
         let serverGroups: {id: string, name: string}[] = [];
         let localGroups: {id: string, name: string}[] = [];
 
-        // 1. פיצול לוגי חסין: אם המשתמש הוא מוסד - נשתמש בפונקציית ה-API הייעודית של המוסד
+        // 1. Institutional Workflow isolation layer
         if (userType === 'institute') {
           try {
-            // קריאה לפונקציה הרשמית שחוי בנתה עבור המוסד שלכם
             const response = await getRealInstituteDashboardRealData();
             if (response && response.success && response.data?.groups) {
               serverGroups = response.data.groups.map((g: any) => ({
@@ -63,10 +79,10 @@ function AnalyticsContent() {
           }
           
           setAllGroups(serverGroups);
-          return; // עצירה מוחלטת - מוסד מציג רק את קבוצות המוסד שלו
+          return; // Early termination: Institute context visualizes verified remote channels exclusively
         }
 
-        // 2. לוגיקת המנחה המקורית שלך (רצה רק אם המשתמש הוא מנחה רגיל)
+        // 2. Standard Facilitator Workflow (Integrates remote database targets with fallback localStorage records)
         try {
           const response = await getDashboardData();
           if (response && response.groups) {
@@ -79,6 +95,7 @@ function AnalyticsContent() {
           console.error("שגיאה במשיכת קבוצות המנחה מהשרת:", e);
         }
 
+        // Parse legacy or local offline storage configurations
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
           if (key && key.startsWith('group_data_')) {
@@ -95,6 +112,7 @@ function AnalyticsContent() {
           }
         }
 
+        // De-duplicate items between localized keys and upstream persistence records
         const combined = [...serverGroups];
         localGroups.forEach(localG => {
           if (!combined.find(serverG => serverG.id === localG.id)) {
@@ -113,6 +131,8 @@ function AnalyticsContent() {
 
       let currentParticipantNames: string[] | null = null;
       let totalSessionsCount = 0;
+
+      // Extract explicit group definitions and metadata from relational schema
       try {
         const groupDetails = await getGroupDetails(id);
         if (groupDetails.success) {
@@ -127,6 +147,7 @@ function AnalyticsContent() {
         setError('אירעה שגיאה בטעינת הנתונים מהשרת.');
       }
 
+      // Aggregate state buckets initialization for unified computation indexes
       let totalCohesion = 0;
       const sessionsFound: any[] = [];
       const participantsPresenceMap: Record<string, { presentCount: number }> = {};
@@ -144,6 +165,7 @@ function AnalyticsContent() {
       let atmosphereSessionsCount = 0;
       const aiInsightsPool: string[] = [];
 
+      // Loop Array Layer A: Process Cached AI Result responses to map Cohesion curves
       Object.keys(localStorage).forEach(key => {
         if (key.includes('ai_cache') && key.includes(id)) {
           try {
@@ -172,10 +194,13 @@ function AnalyticsContent() {
         }
       });
 
+      // Loop Array Layer B: Process Session Log records to compute Atmosphere & Engagement scores
       Object.keys(localStorage).forEach((key) => {
         if (!key.startsWith(`session_log_${id}_`)) return;
         try {
           const parsed = JSON.parse(localStorage.getItem(key) || '{}');
+
+          // Extract Atmosphere & Engagement scores from session log records
           const atmosphereLabel = parsed?.atmosphere;
           const atmosphereScore = atmosphereLabel === 'תומכת' ? 100 : atmosphereLabel === 'ניטרלית' ? 60 : atmosphereLabel === 'מתוחה' ? 20 : null;
           if (atmosphereScore !== null) {
@@ -191,6 +216,8 @@ function AnalyticsContent() {
           const engagementFromLabel = engagementLabel === 'אינטנסיבית' ? 100 : engagementLabel === 'מאוזנת' ? 70 : engagementLabel === 'פאסיבית' ? 40 : 0;
 
           const presentParticipants = attendanceList.filter((person: any) => person?.present === true);
+          
+          // Compute Engagement score from participant presence & participation levels
           const engagementFromParticipants = presentParticipants.length > 0
             ? Math.round(
                 presentParticipants.reduce((sum: number, person: any) => {
@@ -203,11 +230,13 @@ function AnalyticsContent() {
               )
             : 0;
 
+          // Combine weighted contributions from session-level heuristics and participant-level engagement profiles
           const sessionEngagementScore = Math.round((engagementFromLabel * 0.5) + (engagementFromParticipants * 0.5));
           totalEngagementComposite += sessionEngagementScore;
           engagementSessionsCount += 1;
           lastEngagementComposite = sessionEngagementScore;
 
+          // Update presence tracking map for participant-level attendance statistics
           attendanceList.forEach((person: any) => {
             const participantName = person?.name;
             if (!participantName || (allowedParticipantNames && !allowedParticipantNames.has(participantName))) return;
@@ -219,12 +248,14 @@ function AnalyticsContent() {
         }
       });
 
+      // Compute aggregate metrics for Engagement & Atmosphere scores
       const avgEngagement = engagementSessionsCount > 0 ? Math.round(totalEngagementComposite / engagementSessionsCount) : 0;
       const avgAtmosphereScore = atmosphereSessionsCount > 0 ? Math.round(totalAtmosphereScore / atmosphereSessionsCount) : 0;
       const computedAtmosphere = avgAtmosphereScore >= 85 ? 'תומכת מאוד' : avgAtmosphereScore >= 65 ? 'תומכת' : avgAtmosphereScore >= 45 ? 'מאוזנת' : avgAtmosphereScore == 0 ? ' ' : 'מתוחה';
       
       const engagementTrend = engagementSessionsCount > 0 ? (lastEngagementComposite > avgEngagement ? 'up' : lastEngagementComposite < avgEngagement ? 'down' : 'stable') : 'stable';
       
+      // Generate textual insights based on computed metrics
       const preserveText = avgEngagement >= 75 ? "נשמרת מעורבות קבוצתית עקבית ורמת השתתפות פעילה ברוב המפגשים." : avgEngagement >= 55 ? "קיים בסיס יציב לשיח קבוצתי, עם נוכחות ומעורבות סדירה בחלק ניכר מהמפגשים." : "חסר נתונים לניתוח.";
       const strengthenText = aiInsightsPool.length > 0 ? aiInsightsPool[0] : "חסר נתונים לניתוח.";
       const improveText = avgAtmosphereScore < 45 ? "חסר נתונים לניתוח" : avgEngagement < 60 ? "נדרש לשפר חלוקת זמן דיבור ולעודד משתתפים שקטים להביע עמדה באופן עקבי." : "מומלץ לשמר ניטור שיטתי של השתתפות אישית כדי למנוע ירידה הדרגתית במעורבות.";
@@ -245,6 +276,7 @@ function AnalyticsContent() {
         const cohesionTrend = lastScore > avgCohesion ? 'up' : lastScore < avgCohesion ? 'down' : 'stable';
         const cohesionDeltaPercent = avgCohesion > 0 ? Math.round(((lastScore - avgCohesion) / avgCohesion) * 100) : 0;
 
+        // Update the state with computed metrics and derived insights
         setStats({
           avgCohesion,
           lastCohesion: lastScore,
@@ -266,6 +298,13 @@ function AnalyticsContent() {
     fetchAndProcessData();
   }, [id]);
 
+  /**
+   * Visual component for rendering trend direction indicators.
+   * 
+   * @param {Object} props - Component props.
+   * @param {string} props.type - The trend direction ('up', 'down', or 'stable').
+   * @returns {JSX.Element} A span element with appropriate icon based on trend direction.
+   */
   const TrendIcon = ({ type }: { type: string }) => {
     if (type === 'up') return <span className="material-symbols-outlined text-green-500 text-sm">trending_up</span>;
     if (type === 'down') return <span className="material-symbols-outlined text-red-500 text-sm">trending_down</span>;
@@ -275,7 +314,7 @@ function AnalyticsContent() {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f] print:bg-white print:pb-0">
       
-      {/* התיקון של אתי: CSS חסין להורדת PDF עם צבעים */}
+      {/* CSS workaround for PDF export with color adjustments */}
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
           * {
@@ -285,7 +324,7 @@ function AnalyticsContent() {
         }
       ` }} />
       
-      {/* Header - מוסתר בזמן הדפסה (מבוסס על עינב) */}
+      {/* Header - Hidden during PDF export (based on visual style) */}
       <header className="bg-white px-6 py-5 flex flex-row-reverse justify-between items-center border-b border-slate-100 sticky top-0 z-50 print:hidden">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[#003643] flex items-center justify-center text-white">
@@ -301,7 +340,7 @@ function AnalyticsContent() {
       <main className="max-w-2xl mx-auto px-6 pt-6 space-y-6 print:pt-0 print:max-w-full">
         {loading && <div className="bg-[#e6f4f7] text-[#003643] text-sm font-bold rounded-2xl p-4 text-center print:hidden">טוען נתוני אנליטיקה...</div>}
         
-        {/* בחירת קבוצות - מוסתר בזמן הדפסה (עינב) */}
+        {/* Group selection - Hidden during PDF export (based on visual style) */}
         <section className="bg-white rounded-[28px] p-4 shadow-sm border border-slate-50 print:hidden">
         <p className="text-[10px] font-black text-slate-400 mb-3 mr-2 uppercase tracking-widest">
   {userType === 'institute' || allGroups.length > 0 && !localStorage.getItem(`session_log_${allGroups[0]?.id}_1`) ? 'קבוצות המוסד' : 'הקבוצות שלך'}
@@ -321,7 +360,7 @@ function AnalyticsContent() {
 
         {id ? (
           <>
-            {/* כותרת PDF (אתי) */}
+            {/* PDF title (based on visual style) */}
             <div className="hidden print:block text-right mb-8 border-b-2 border-[#003643] pb-4">
                 <h2 className="text-2xl font-black text-[#003643]">דוח אנליטיקה תקופתי</h2>
                 <p className="text-slate-600 font-bold">קבוצה: {groupName}</p>
@@ -333,7 +372,7 @@ function AnalyticsContent() {
               <p className="text-slate-400 text-xs italic">ניתוח ביצועים קבוצתי רב-ממדי</p>
             </div>
 
-            {/* רמת השתתפות (עינב + תיקון צבעים של אתי) */}
+            {/* Participation level (based on visual style) */}
             <section className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-50 relative overflow-hidden print:shadow-none print:border-slate-200">
               <h3 className="font-bold text-[#003643] mb-8 flex justify-between items-center">
                 רמת השתתפות לאורך התקופה          
@@ -361,7 +400,7 @@ function AnalyticsContent() {
               </div>
             </section>
 
-            {/* לכידות קבוצתית (עינב) */}
+            {/* Group cohesion (based on visual style) */}
             <section className="bg-[#003643] rounded-[32px] p-10 text-white shadow-xl relative overflow-hidden min-h-[220px] flex flex-col justify-between print:bg-[#003643]">
                 <div className="flex justify-between items-start">
                     <div className="text-right">
@@ -380,7 +419,7 @@ function AnalyticsContent() {
                 </div>
             </section>
 
-            {/* מעורבות ואווירה */}
+            {/* Engagement & Atmosphere (based on visual style) */}
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-50 print:border-slate-200">
                 <h4 className="text-slate-400 text-[10px] font-bold uppercase">מעורבות כללית</h4>
@@ -392,7 +431,7 @@ function AnalyticsContent() {
               </div>
             </div>
 
-            {/* אנליטיקה לפי משתתפים (עינב) */}
+            {/* Participant-level analysis (based on visual style) */}
             <section className="pt-4 space-y-4">
               <h2 className="text-xl font-black text-[#003643] mr-2">אנליטיקה לפי משתתפים</h2>
               <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-50 space-y-5 print:shadow-none print:border-slate-200">
@@ -415,7 +454,7 @@ function AnalyticsContent() {
               </div>
             </section>
 
-            {/* דפוסים (עינב) */}
+            {/* Patterns (based on visual style) */}
             <section className="pt-4 space-y-4 pb-10">
               <h2 className="text-xl font-black text-[#003643] mr-2 print:mt-10">זיהוי דפוסים (AI Insights)</h2>
               <div className="grid gap-3">
@@ -436,7 +475,7 @@ function AnalyticsContent() {
               </div>
             </section>
 
-            {/* כפתור הורדה (אתי) */}
+            {/* Download button (based on visual style) */}
             <button 
                 onClick={handlePrint}
                 className="w-full bg-[#003643] text-white py-5 rounded-[24px] font-bold flex items-center justify-center gap-3 shadow-lg active:scale-95 transition-all print:hidden mt-6 mb-20"
@@ -453,7 +492,7 @@ function AnalyticsContent() {
         )}
         </main>
   
-        {/* התיקון של אתי: אם המשתמש הוא מוסד, נזריק קוד שמסתיר את סרגל המנחה הגלובלי כדי שלא יתערבב */}
+        {/* Hide global facilitator sidebar if user is an institute (based on visual style) */}
         {userType === 'institute' && (
           <style dangerouslySetInnerHTML={{ __html: `
             /* מסתיר את הסרגל התחתון הכללי של המנחה שמגיע מה-Layout */
@@ -463,7 +502,7 @@ function AnalyticsContent() {
           ` }} />
         )}
   
-        {/* הצגת סרגל המוסד החדש בתחתית המסך */}
+        {/* Display new institute sidebar at the bottom of the screen (based on visual style) */}
         {userType === 'institute' && <InstituteNav />}
       </div>
     );

@@ -1,5 +1,13 @@
 import { GoogleGenAI } from "@google/genai";
 
+/**
+ * Next.js API Route Handler
+ * Handles AI analysis requests by interfacing with the Gemini API.
+ * Includes built-in retry mechanisms and structured error handling.
+ * 
+ * @param {Request} req - The incoming Next.js request object containing the prompt in JSON.
+ * @returns {Promise<Response>} JSON response with the generated text or a structured error code.
+ */
 export async function POST(req) {
   try {
     const { prompt } = await req.json();
@@ -8,13 +16,23 @@ export async function POST(req) {
       return Response.json({ error: "Missing API key" }, { status: 500 });
     }
 
+    // Initialize the Google GenAI SDK client
     const ai = new GoogleGenAI({
       apiKey: process.env.GEMINI_API_KEY,
     });
 
-    // פונקציית retry
+    /**
+     * Helper function to handle API calls with an exponential/static retry mechanism.
+     * Specifically handles Service Unavailable (503) errors by retrying after a timeout.
+     * 
+     * @param {number} retries - Number of remaining retry attempts (defaults to 2).
+     * @returns {Promise<object>} The raw response object from the Gemini model.
+     */
+
     async function generateWithRetry(retries = 2) {
       try {
+        //Due to using a free AI tool,
+        // we may need to switch between versions for things to work as expected.
         return await ai.models.generateContent({
           model: "gemini-2.5-flash",
           contents: prompt,
@@ -35,13 +53,14 @@ export async function POST(req) {
 
     const response = await generateWithRetry();
 
+    // Return the successfully generated text
     return Response.json({
       text: response.text,
     });
   } catch (error) {
     console.error("AI ERROR:", error);
 
-    // 💥 טיפול חכם בשגיאות
+    // Smart error handling for rate limiting
     if (error.status === 429) {
       return Response.json(
         { error: "QUOTA_EXCEEDED" },
@@ -49,6 +68,9 @@ export async function POST(req) {
       );
     }
 
+    // Structured Error Handling for client/UI feedback
+
+    // Handle persistent Model Overload/Service Unavailable errors
     if (error.status === 503) {
       return Response.json(
         { error: "MODEL_BUSY" },
@@ -56,6 +78,7 @@ export async function POST(req) {
       );
     }
 
+    // Fallback error code for any unhandled internal server exceptions
     return Response.json(
       { error: "AI_ERROR" },
       { status: 500 }

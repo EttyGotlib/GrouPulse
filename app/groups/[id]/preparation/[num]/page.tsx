@@ -4,20 +4,31 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { getGroupDetails } from '../../../../../lib/api';
 
+/**
+ * PreparationPage Component
+ * * This component acts as an automated, AI-driven preparation cockpit for session facilitators.
+ * It fetches real-time group details, cross-references historical caches (`ai_cache` and `preparation_cache`)
+ * from all previous sessions, and dispatches a comprehensive analytical payload to Gemini to extract
+ * tailored session focuses, custom goals, interventions, risk management alerts, and specific participant checklists.
+ */
 export default function PreparationPage() {
   const router = useRouter();
   const { id, num } = useParams();
 
+  // --- Component State Architecture ---
   const [groupName, setGroupName] = useState('');
-
   const [participants, setParticipants] = useState<any[]>([]);
-
   const [aiPreparation, setAiPreparation] = useState<any>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(true);
   const [aiError, setAiError] = useState('');
 
+  /**
+   * Effect Hook: Group Context Resolver
+   * Resolves the primary metadata context (Group Name & Participant List) from the DB layer.
+   */
   useEffect(() => {
     const fetchGroupName = async () => {
+
       if (!id) return;
 
       try {
@@ -42,9 +53,13 @@ export default function PreparationPage() {
     fetchGroupName();
   }, [id]);
 
-
+  /**
+   * Effect Hook: Deep Context Aggregator & AI Inference Engine
+   * Compiles historical logs chronologically from localStorage and dispatches them to the AI engine.
+   */
   useEffect(() => {
     const fetchAiPreparation = async () => {
+      // Guard clause: Ensure full metadata context is active before execution
       if (!id || !num || !groupName) return;
 
       setIsLoadingAi(true);
@@ -53,6 +68,7 @@ export default function PreparationPage() {
 
         const previousSessionsData: any[] = [];
 
+        // Chronologically reconstruct the group's journey across all historical iterations
         for (let i = 1; i < Number(num); i++) {
           const summaryCache = localStorage.getItem(`ai_cache_${id}_${i}`);
           const preparationCache = localStorage.getItem(`preparation_cache_${id}_${i}`);
@@ -64,6 +80,7 @@ export default function PreparationPage() {
           });
         }
 
+        // Request prediction mapping from upstream Generation Handlers
         const response = await fetch('/api/gen-summary', {
           method: 'POST',
           headers: {
@@ -129,6 +146,7 @@ export default function PreparationPage() {
         const result = await response.json();
 
         if (result.text) {
+          // Clean possible markdown code fences injected by safety modules
           const cleanJson = result.text
             .replace(/```json|```/g, "")
             .trim();
@@ -137,7 +155,7 @@ export default function PreparationPage() {
 
           setAiPreparation(parsed);
 
-
+          // Update localized edge cache
           localStorage.setItem(
             `preparation_cache_${id}_${num}`,
             JSON.stringify(parsed)
@@ -146,7 +164,7 @@ export default function PreparationPage() {
       } catch (error) {
         console.error("AI Preparation Error:", error);
 
-
+        // Fallback Mechanism: Inject robust mock structures tailored to support UI features gracefully
         setAiPreparation({
           sessionFocus: "חיזוק תחושת הביטחון והשייכות בקבוצה",
 
@@ -201,12 +219,13 @@ export default function PreparationPage() {
     };
 
     fetchAiPreparation();
+    // React Dependency Engine listening explicitly to parent structural contexts
   }, [id, num, groupName, participants]);
 
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f]">
 
-      {}
+      {/* Global Module Navigation Header */}
       <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 flex flex-row-reverse justify-between items-center w-full px-6 h-16 border-b border-slate-100">
         <h1 className="font-bold text-lg text-[#003643]">הכנה למפגש</h1>
 
@@ -220,7 +239,7 @@ export default function PreparationPage() {
 
       <main className="max-w-2xl mx-auto px-6 pt-6 flex flex-col gap-8">
 
-        {}
+        {/* Global Pending Async Spinner UI State */}
         {isLoadingAi && (
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
             <div className="w-8 h-8 border-4 border-[#b7ecf3] border-t-[#003643] rounded-full animate-spin"></div>
@@ -228,14 +247,14 @@ export default function PreparationPage() {
           </div>
         )}
 
-        {}
+        {/* Global Runtime Fallback Warning Notification banner */}
         {aiError && (
           <div className="bg-[#fff7ed] border border-orange-200 text-orange-700 p-4 rounded-2xl text-sm font-medium">
             {aiError}
           </div>
         )}
 
-        {}
+        {/* Dynamic Focus Section */}
         {!isLoadingAi && aiPreparation && (
           <section className="bg-[#003643] text-white p-6 rounded-3xl shadow-lg">
             <div className="flex items-center gap-2 mb-3">
@@ -249,7 +268,7 @@ export default function PreparationPage() {
           </section>
         )}
 
-        {}
+        {/* Core Metadata Display Cards (Title and Session Counters) */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-50">
             <label className="text-slate-400 text-[11px] font-bold block mb-1 uppercase tracking-wider">
@@ -282,7 +301,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Interactive Goals List Checklist Container */}
         <section className="bg-[#f1f4f8] p-6 rounded-3xl border border-slate-100">
           <div className="flex items-center gap-2 mb-4 border-r-4 border-[#32666d] pr-3">
             <h3 className="text-lg font-bold text-[#003643]">מטרות המפגש</h3>
@@ -312,7 +331,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Step-by-Step Tactical Group Interventions Deck */}
         <section className="flex flex-col gap-4">
           <h3 className="text-lg font-bold text-[#003643] px-1">
             תכנון התערבויות
@@ -345,7 +364,7 @@ export default function PreparationPage() {
           ))}
         </section>
 
-        {}
+        {/* Logistics and Material Allocation Grid */}
         <section className="bg-[#e5e8ed] p-6 rounded-3xl">
           <h3 className="text-lg font-bold text-[#003643] mb-4 px-1">
             ציוד ועזרים
@@ -372,7 +391,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Professional Clinical Facilitator Recommendation Track */}
         <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-5">
             <span className="material-symbols-outlined text-[#32666d]">
@@ -396,7 +415,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Proactive Dynamic Group Risk Shield Deck */}
         <section className="bg-[#fff7ed] p-6 rounded-3xl border border-orange-100">
           <div className="flex items-center gap-2 mb-5">
             <span className="material-symbols-outlined text-orange-500">
@@ -420,7 +439,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Individualized Participant Insight Matrix (Avatars & Tailored Notes) */}
         <section className="mb-10">
           <div className="flex justify-between items-center mb-4 px-1">
             <h3 className="text-lg font-bold text-[#003643]">
