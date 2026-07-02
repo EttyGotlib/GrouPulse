@@ -78,7 +78,7 @@ export default function GroupDetailsPage() {
         {/* Participants Section */}
         <div style={{ marginBottom: '40px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-          <button onClick={() => router.push(`/groups/new/participants?groupId=${groupData.id}`)} style={{ backgroundColor: '#003643', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '14px', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+            <button onClick={() => router.push(`/groups/new/participants?groupId=${groupData.id}`)} style={{ backgroundColor: '#003643', color: 'white', border: 'none', padding: '12px 25px', borderRadius: '14px', fontSize: '14px', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
               <span className="material-symbols-outlined">person_add</span> הוספת משתתף
             </button>
             <h2 style={{ fontSize: '22px', fontWeight: '800', color: '#003643' }}>משתתפי הקבוצה</h2>
@@ -137,7 +137,6 @@ function MeetingCard({ num, isNext, groupId, router }: any) {
           >
             הכנה למפגש
           </button>
-          {/* הכפתור המעודכן */}
           <button 
             onClick={() => router.push(`/groups/${groupId}/session-log/${num}`)}
             style={{ 
@@ -156,21 +155,21 @@ function MeetingCard({ num, isNext, groupId, router }: any) {
           </button>
         </div>
         <button 
-  onClick={() => router.push(`/groups/${groupId}/ai-summary/${num}`)}
-  style={{ 
-    width: '100%', 
-    padding: '12px', 
-    borderRadius: '14px', 
-    border: 'none', 
-    backgroundColor: '#1e4d5b', 
-    color: 'white', 
-    fontWeight: 'bold', 
-    fontSize: '14px', 
-    cursor: 'pointer' 
-  }}
->
-  סיכום AI
-</button>
+          onClick={() => router.push(`/groups/${groupId}/ai-summary/${num}`)}
+          style={{ 
+            width: '100%', 
+            padding: '12px', 
+            borderRadius: '14px', 
+            border: 'none', 
+            backgroundColor: '#1e4d5b', 
+            color: 'white', 
+            fontWeight: 'bold', 
+            fontSize: '14px', 
+            cursor: 'pointer' 
+          }}
+        >
+          סיכום AI
+        </button>
       </div>
     </div>
   );
@@ -179,9 +178,12 @@ function MeetingCard({ num, isNext, groupId, router }: any) {
 function ParticipantCard({ id, name, info, router }: any) {
   return (
     <div style={{ minWidth: '160px', backgroundColor: 'white', borderRadius: '20px', padding: '20px', textAlign: 'center', boxShadow: '0 2px 8px rgba(0,0,0,0.02)', border: '1px solid #f1f4f8' }}>
-      <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#e2e8f0', margin: '0 auto 12px', overflow: 'hidden' }}>
-        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`} alt="avatar" style={{ width: '100%' }} />
+      
+      {/* כאן בוצע השינוי: הצגת האות הראשונה במקום תמונת הדמה החיצונית */}
+      <div style={{ width: '60px', height: '60px', borderRadius: '50%', backgroundColor: '#e2f8fc', margin: '0 auto 12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#003643', fontWeight: 'bold', fontSize: '20px' }}>
+        {name ? name.charAt(0).toUpperCase() : '?'}
       </div>
+
       <div style={{ fontWeight: 'bold', fontSize: '15px', color: '#003643' }}>{name}</div>
       <div style={{ fontSize: '12px', color: '#94a3b8', margin: '5px 0 12px' }}>{info}</div>
       <button onClick={() => router.push(`/participants/${id}`)} style={{ color: '#003643', border: 'none', background: 'none', fontSize: '13px', fontWeight: 'bold', cursor: 'pointer', textDecoration: 'underline' }}>פרופיל מלא</button>

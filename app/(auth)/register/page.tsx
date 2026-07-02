@@ -1,4 +1,9 @@
 'use client';
+/**
+ * Registration page that creates new user accounts with Supabase Authentication.
+ * Supports moderator and institution registration, validates institution codes,
+ * creates user profiles, and assigns role-based data during signup.
+ */
 
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
