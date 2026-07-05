@@ -1,10 +1,26 @@
 'use client';
+/**
+ * AddParticipantPage Component
+ *
+ * Form page for adding a new participant to a group.
+ * Supports both backend submission and temporary local storage fallback.
+ *
+ * Features:
+ * - Input form for full name, ID number, email, and phone
+ * - Client-side validation for all fields
+ * - Optional file upload (UI only)
+ * - Adds participant via API when groupId exists
+ * - Stores locally if no groupId is provided
+ * - Navigation back to group page after successful save
+ *
+ * Uses Next.js router and query parameters for group context.
+ */
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { addSingleParticipant } from '../../../../lib/api';
 
-export default function AddParticipantPage() {
+function AddParticipantForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const groupId = searchParams.get('groupId');
@@ -116,6 +132,14 @@ export default function AddParticipantPage() {
         <button onClick={() => router.back()} style={{ width: '100%', backgroundColor: 'transparent', color: '#003643', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>ביטול וחזרה</button>
       </div>
     </div>
+  );
+}
+
+export default function AddParticipantPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '20px', textAlign: 'center', color: '#003643', fontWeight: 'bold' }}>טוען...</div>}>
+      <AddParticipantForm />
+    </Suspense>
   );
 }
 
