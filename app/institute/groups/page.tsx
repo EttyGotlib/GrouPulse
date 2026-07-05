@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Layers } from 'lucide-react';
-import { getRealInstituteDashboardRealData } from '../../../lib/api'; // ודאי שנתיב הייבוא נכון לפרויקט שלך
+import { getRealInstituteDashboardRealData } from '../../../lib/api'; 
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState([]);

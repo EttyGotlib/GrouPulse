@@ -8,16 +8,15 @@ export default function SessionLogPage() {
   const router = useRouter();
   const { id, num } = useParams();
   
-  // מפתח ייחודי לשמירה בדפדפן
+
   const storageKey = `session_log_${id}_${num}`;
 
-  // State לניהול הנתונים
+
   const [logText, setLogText] = useState('');
   const [cohesion, setCohesion] = useState('');
   const [engagement, setEngagement] = useState('');
   const [atmosphere, setAtmosphere] = useState('');
   
-// 1. אתחול ה-attendance כרשימה ריקה
 const [attendance, setAttendance] = useState<any[]>([]);
 const [loading, setLoading] = useState(true);
 
@@ -54,7 +53,6 @@ useEffect(() => {
           const newAtmosphere = summaryData ? atmosphereMap[summaryData.atmosphere] || '' : '';
           
 
-          // עיבוד נוכחות
           const participantsFromDB = groupResult.participants.map((p: any) => ({
             id: p.id,
             name: p.name_or_code,
@@ -90,7 +88,6 @@ useEffect(() => {
 
   if (id && num) loadInitialData();
 }, [id, num, storageKey]);
-  // 2. פונקציית עזר לשמירה אוטומטית
   const saveToLocal = (
     newText: string, 
     newCohesion: string, 
@@ -108,7 +105,6 @@ useEffect(() => {
     localStorage.setItem(storageKey, JSON.stringify(dataToSave));
   };
 
-  // פונקציה לשינוי סטטוס נוכחות
   const toggleAttendance = (index: number) => {
     const updatedAttendance = [...attendance];
     updatedAttendance[index].present = !updatedAttendance[index].present;
@@ -116,7 +112,6 @@ useEffect(() => {
     saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
   };
 
-  // פונקציה חדשה לעדכון רמת השתתפות (1-5)
   const updateParticipationLevel = (index: number, level: number) => {
     const updatedAttendance = [...attendance];
     updatedAttendance[index].participationLevel = level;
@@ -124,7 +119,6 @@ useEffect(() => {
     saveToLocal(logText, cohesion, engagement, atmosphere, updatedAttendance);
   };
 
-  // פונקציה לעדכון הערה ספציפית למשתתף
   const updateParticipantNotes = (index: number, text: string) => {
     const updatedAttendance = [...attendance];
     updatedAttendance[index].notes = text;
@@ -135,7 +129,7 @@ useEffect(() => {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen text-[#181c1f] font-sans pb-32">
       
-      {/* Header */}
+      {}
       <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-100">
         <div className="flex flex-row-reverse justify-between items-center w-full px-6 py-4">
           <button className="material-symbols-outlined text-[#003643]">calendar_today</button>
@@ -149,7 +143,7 @@ useEffect(() => {
 
       <main className="max-w-2xl mx-auto px-6 mt-8 space-y-10">
         
-        {/* Section 1: Group Documentation */}
+        {}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-bold text-[#003643]">תיעוד קבוצתי</h2>
@@ -168,7 +162,7 @@ useEffect(() => {
             ></textarea>
           </div>
 
-          {/* Group Metrics */}
+          {}
           <div className="grid grid-cols-1 gap-4 bg-[#f1f4f8]/50 p-4 rounded-2xl border border-slate-100">
             <div className="space-y-2">
               <label className="text-sm font-bold text-[#003643] px-1">מדד לכידות קבוצתית</label>
@@ -225,7 +219,7 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* Section 2: Attendance Checklist (הוחזר למקומו!) */}
+        {}
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-[#003643]">צ'ק-ליסט נוכחות</h2>
           <div className="grid grid-cols-2 gap-3">
@@ -244,7 +238,7 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* Section 3: Individual Documentation */}
+        {}
         <section className="space-y-4">
           <h2 className="text-xl font-bold text-[#003643]">תיעוד פרטני</h2>
           <div className="space-y-4">
@@ -254,7 +248,6 @@ useEffect(() => {
               </p>
             ) : (
               attendance.map((person, i) => {
-                // מציגים רק אם המשתתף נוכח
                 if (!person.present) return null;
 
                 return (
@@ -271,7 +264,7 @@ useEffect(() => {
                       </div>
                     </div>
 
-                  {/* רכיב בחירת רמת השתתפות 1-5 */}
+                  {}
                   <div className="bg-[#f1f4f8] rounded-2xl p-4 space-y-3">
                       <label className="block text-center text-[#003643] font-bold text-sm">רמת השתתפות במפגש</label>
                       <div className="flex justify-between gap-2 px-2">
@@ -304,11 +297,10 @@ useEffect(() => {
           </div>
         </section>
 
-        {/* Save Button */}
+        {}
         <div className="pt-6">
           <button 
             onClick={async () => {
-                // 1. שמירה מקומית ליתר ביטחון
                 saveToLocal(logText, cohesion, engagement, atmosphere, attendance);
                 const res1 = await saveIndividualNotes(id, num, attendance);
                 const res2 = await saveSessionSummary(id, num, {
@@ -318,10 +310,8 @@ useEffect(() => {
                   atmosphere: atmosphere === 'מתוחה' ? 1 : atmosphere === 'ניטרלית' ? 2 : 3
                 });
                 if (res1.success && res2.success) {
-                  //localStorage.removeItem(storageKey);
                   router.push(`/groups/${id}`);
                 } else {
-                  // אם הייתה שגיאה - מציגים אותה
                   alert("שגיאה בשמירה: " + (res1.error || res2.error));
                 }
               }}
