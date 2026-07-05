@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Users, Layers, ArrowLeftRight, Megaphone, AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
+import { Users, Layers, ArrowLeftRight, Megaphone, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { getInstituteStats, getRealInstitutionName } from '../../lib/api';
 
@@ -15,20 +15,14 @@ export default function InstituteDashboard() {
   });
   const [loading, setLoading] = useState(true);
 
-  const [alerts] = useState([
-    { id: 1, text: 'המנחה עינב זרו לא מילאה תיעוד מפגש עבור קבוצת "התמודדות עם חרדה א\'" (מפגש 2).', type: 'warning' },
-    { id: 2, text: 'מדד הלכידות הקבוצתית בסדנת העצמה עלה ב-15% במפגש האחרון!', type: 'success' },
-    { id: 3, text: 'כל מערכות ה-AI מסונכרנות ומפיקות דוחות אנליטיים כסדרן.', type: 'info' }
-  ]);
-
   useEffect(() => {
     async function fetchDashboardData() {
       try {
         setLoading(true);
 
-        const nameRes = await getRealInstitutionName();
-        if (nameRes && nameRes.success) {
-            setInstituteName(nameRes.name);
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            setInstituteName(user.user_metadata?.full_name || 'מכון/מוסד');
         }
 
         const statsData = await getInstituteStats();
@@ -70,22 +64,35 @@ export default function InstituteDashboard() {
           </div>
         </div>
 
+        {}
         <div className="bg-[#1e4d5b] rounded-[1.5rem] p-6 text-white space-y-4">
           <div className="flex items-center gap-2 justify-start flex-row-reverse">
             <Megaphone className="text-[#b7ecf3]" size={22} />
-            <span className="text-sm font-bold opacity-0.8">התראות מנהלתיות ותובנות מוסד</span>
+            <span className="text-sm font-bold opacity-0.8">לוח עדכונים והנחיות לצוות המוסד</span>
           </div>
           <div className="flex flex-col gap-3">
-            {alerts.map((alert) => (
-              <div key={alert.id} className="flex items-start gap-3 flex-row-reverse justify-start">
-                {alert.type === 'warning' && <AlertCircle className="text-amber-400 shrink-0 mt-0.5" size={20} />}
-                {alert.type === 'success' && <TrendingUp className="text-teal-300 shrink-0 mt-0.5" size={20} />}
-                {alert.type === 'info' && <CheckCircle className="text-sky-300 shrink-0 mt-0.5" size={20} />}
-                <p className="text-base text-right opacity-0.9 leading-relaxed flex-1">
-                  {alert.text}
-                </p>
-              </div>
-            ))}
+            
+            <div className="flex items-start gap-3 flex-row-reverse justify-start">
+              <CheckCircle2 className="text-teal-300 shrink-0 mt-0.5" size={20} />
+              <p className="text-base text-right opacity-0.9 leading-relaxed flex-1">
+                סנכרון הנתונים מול מערכות האנליטיקה המבוססות AI פועל כסדרו ומפיק דוחות שבועיים אוטומטיים עבור כל קבוצות המכון.
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3 flex-row-reverse justify-start">
+              <ShieldCheck className="text-sky-300 shrink-0 mt-0.5" size={20} />
+              <p className="text-base text-right opacity-0.9 leading-relaxed flex-1">
+                גישת המנחים מאובטחת ומותנית בהפרדת הרשאות מלאה. מנחי המכון רשאים לצפות אך ורק בקבוצות אליהן שובצו באופן רשמי.
+              </p>
+            </div>
+
+            <div className="flex items-start gap-3 flex-row-reverse justify-start">
+              <HelpCircle className="text-amber-300 shrink-0 mt-0.5" size={20} />
+              <p className="text-base text-right opacity-0.9 leading-relaxed flex-1">
+                נתקלתם בבעיה טכנית או שגיאה בנתוני הטפסים? ניתן לפנות בכל עת לתמיכה הטכנית המוסדית דרך מסך הגדרות המערכת.
+              </p>
+            </div>
+
           </div>
         </div>
 

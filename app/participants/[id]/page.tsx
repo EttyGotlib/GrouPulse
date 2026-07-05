@@ -186,9 +186,9 @@ export default function ParticipantProfilePage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', backgroundColor: 'white', borderBottom: '1px solid #eee' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eee', overflow: 'hidden' }}>
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${participantId}`} alt="avatar" />
-          </div>
+        <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#e2f8fc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#003643', fontWeight: 'bold', fontSize: '16px' }}>
+           {participantName ? participantName.charAt(0).toUpperCase() : '?'}
+           </div>
           <span style={{ fontWeight: 'bold', color: '#003643', fontSize: '18px' }}>Participant Insight</span>
         </div>
         <span className="material-symbols-outlined" style={{ color: '#003643', cursor: 'pointer' }} onClick={() => router.back()}>arrow_forward</span>
