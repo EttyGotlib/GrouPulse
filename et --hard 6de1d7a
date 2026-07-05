@@ -1,0 +1,33 @@
+[33mca548a1[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeature/etty-gotlib[m[33m)[m HEAD@{0}: pull origin feature/chavi-druk: Merge made by the 'ort' strategy.
+[33m6de1d7a[m[33m ([m[1;31morigin/feature/etty-gotlib[m[33m)[m HEAD@{1}: commit: fix: update settings layout and handle navigation params
+[33m8a2f5f8[m HEAD@{2}: commit: fix: analytics page group fetching for institute and hide global navbar
+[33md05db08[m HEAD@{3}: commit: fix: keep form state in localStorage when navigating to participants page
+[33m0f11fc7[m HEAD@{4}: pull origin feature/Einav-Zaro: Merge made by the 'ort' strategy.
+[33mbcfc8b9[m HEAD@{5}: commit (merge): fix: resolve merge conflicts in institute dashboard
+[33mbeae4c4[m HEAD@{6}: pull origin feature/nechami-salzman: Merge made by the 'ort' strategy.
+[33mc084d11[m HEAD@{7}: commit: תיקון קטן לסרגל
+[33mfd93bf1[m HEAD@{8}: commit: fix: separate institute and dashboard layouts and update navbar styling
+[33me086b5a[m HEAD@{9}: commit: fix: resolve lucide-react icon error and polish institute dashboard mock data
+[33m264910b[m HEAD@{10}: pull origin feature/nechami-salzman: Merge made by the 'ort' strategy.
+[33mb734477[m HEAD@{11}: pull origin feature/chavi-druk: Fast-forward
+[33mf7ed9aa[m HEAD@{12}: commit: feat: implement dynamic dashboard alerts and sync with Supabase Sessions table
+[33m9970a9f[m HEAD@{13}: commit: fix: resolved merge conflicts and updated calendar dependency
+[33m6a5be4e[m HEAD@{14}: pull origin feature/Einav-Zaro: Merge made by the 'ort' strategy.
+[33m3626dc1[m HEAD@{15}: pull origin feature/chavi-druk: Fast-forward
+[33mabac884[m HEAD@{16}: commit (merge): PDF analitlkot
+[33m5309498[m HEAD@{17}: commit: הפרדת דף הקבוצות ותיקון תצוגת צבעים בהורדת PDF
+[33mfde6362[m HEAD@{18}: commit: feat: implement analytics page, fix PDF export colors, and update BottomNav visibility
+[33m70c60b9[m HEAD@{19}: commit: feat: implement preparation and session-log pages with LocalStorage persistence and add group creation questions
+[33m4084712[m HEAD@{20}: merge origin/feature/chavi-druk: Merge made by the 'ort' strategy.
+[33mc465c73[m HEAD@{21}: merge origin/feature/nechami-salzman: Fast-forward
+[33m7fa55a6[m HEAD@{22}: merge origin/feature/chavi-druk: Merge made by the 'ort' strategy.
+[33mddd5cbc[m HEAD@{23}: commit: feat: move BottomNav to global layout and cleanup form pages
+[33m2480d25[m HEAD@{24}: commit: feat: add participant profile page and connect navigation from group details
+[33mefa4020[m HEAD@{25}: merge origin/feature/nechami-salzman: Fast-forward
+[33m5861f4d[m HEAD@{26}: checkout: moving from feature/etty-gotlib to feature/etty-gotlib
+[33m5861f4d[m HEAD@{27}: checkout: moving from feature/etty-gotlib to feature/etty-gotlib
+[33m5861f4d[m HEAD@{28}: commit: סיום דף יצירת קבוצה וסנכרון רשימת משתתפים
+[33mbaa2e2d[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/feature/dashboard/EinavZaro[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{29}: checkout: moving from main to feature/etty-gotlib
+[33mbaa2e2d[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/feature/dashboard/EinavZaro[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{30}: commit: Added live dashboard screen with Supabase data integration and responsive layout
+[33mc911afb[m HEAD@{31}: commit: גרסא ראשונית למסך ההתחברות
+[33ma96ac56[m HEAD@{32}: commit (initial): initial commit: project is ready
