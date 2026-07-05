@@ -104,7 +104,7 @@ function NavItem({ icon, label, active, onClick }: any) {
       style={{ 
         display: 'flex', 
         flexDirection: 'column', 
-        alignDirection: 'rtl',
+        direction: 'rtl',
         alignItems: 'center', 
         gap: '5px', 
         color: active ? '#003643' : '#999', 
