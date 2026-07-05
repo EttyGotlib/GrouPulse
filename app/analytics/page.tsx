@@ -389,7 +389,7 @@ function AnalyticsContent() {
                 </div>
             </section>
 
-            {/}
+           
             <div className="grid grid-cols-2 gap-4">
               <div className="bg-white rounded-[32px] p-6 shadow-sm border border-slate-50 print:border-slate-200">
                 <h4 className="text-slate-400 text-[10px] font-bold uppercase">מעורבות כללית</h4>
