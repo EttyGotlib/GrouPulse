@@ -1,5 +1,20 @@
 'use client';
-
+/**
+ * InstituteDashboard Component
+ *
+ * Main dashboard for institute-level overview.
+ * Displays institutional stats, status messages, and system insights.
+ *
+ * Features:
+ * - Fetch institute name from authenticated user metadata
+ * - Load real-time statistics (patients, groups, moderators)
+ * - Loading state handling
+ * - Summary cards for key metrics
+ * - Static announcements / system status panel
+ * - Responsive dashboard layout with visual emphasis
+ *
+ * Uses Supabase auth and custom API services.
+ */
 import { useState, useEffect } from 'react';
 import { Users, Layers, ArrowLeftRight, Megaphone, CheckCircle2, ShieldCheck, HelpCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -25,6 +40,7 @@ export default function InstituteDashboard() {
         if (user) {
             setInstituteName(user.user_metadata?.full_name || 'מכון/מוסד');
         }
+      
 
         // 2. שליפת הנתונים הסטטיסטיים דרך הפונקציה המוכנה
         const statsData = await getInstituteStats();

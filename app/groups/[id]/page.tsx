@@ -1,4 +1,23 @@
 'use client';
+/**
+ * GroupDetailsPage Component
+ *
+ * Displays an overview dashboard for a specific group, including its details,
+ * participants list, and session management interface.
+ *
+ * Features:
+ * - Fetch and display group data and participants from API
+ * - Participant cards with quick navigation to profiles
+ * - Dynamic generation of session list based on group size
+ * - Session cards with navigation to preparation, logging, and AI summary pages
+ * - Progressive loading of additional sessions
+ *
+ * Components:
+ * - MeetingCard: session action controls
+ * - ParticipantCard: participant preview and profile link
+ *
+ * Uses Next.js router and group API services.
+ */
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';

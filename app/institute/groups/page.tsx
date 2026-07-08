@@ -1,8 +1,22 @@
 'use client';
+/**
+ * GroupsPage Component
+ *
+ * Displays an institute dashboard of all groups.
+ * Fetches groups data from the backend and renders a simple overview list.
+ *
+ * Features:
+ * - Fetch groups from API on mount
+ * - Loading and empty states handling
+ * - Display group name, description, and participant count
+ * - Responsive grid layout for group cards
+ *
+ * Uses a single API call to load all group data.
+ */
 
 import { useState, useEffect } from 'react';
 import { Layers } from 'lucide-react';
-import { getRealInstituteDashboardRealData } from '../../../lib/api'; 
+import { getRealInstituteDashboardRealData } from '../../../lib/api'; // ודאי שנתיב הייבוא נכון לפרויקט שלך
 
 export default function GroupsPage() {
   const [groups, setGroups] = useState([]);

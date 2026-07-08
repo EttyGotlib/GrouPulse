@@ -1,4 +1,19 @@
 'use client';
+/**
+ * ParticipantProfilePage Component
+ *
+ * Shows a full participant overview across sessions with analytics and AI insights.
+ *
+ * Features:
+ * - Fetch participant session history from backend
+ * - Compute participation metrics (avg, count)
+ * - Generate and cache AI behavioral analysis
+ * - Render progress graph and session timeline
+ * - Support institute vs regular view modes
+ * - Handle loading and error states
+ *
+ * Includes Suspense wrapper for Next.js routing safety.
+ */
 
 import React, { useState, useEffect, useRef, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';

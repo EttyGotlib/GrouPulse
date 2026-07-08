@@ -1,4 +1,21 @@
 'use client';
+/**
+ * NewGroupPage Component
+ *
+ * Form page for creating a new therapy/support group.
+ * Collects all group configuration data and manages participant draft data via localStorage.
+ *
+ * Features:
+ * - Create and edit group details (name, type, schedule, location, dates)
+ * - Persistent draft storage using localStorage
+ * - Session count stepper control
+ * - Participant preview from temporary storage
+ * - Navigation to participant management page
+ * - Final group creation via API call with cleanup of temp data
+ *
+ * Dependencies:
+ * Next.js router, Supabase/API layer, and localStorage for draft state management.
+ */
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';

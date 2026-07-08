@@ -1,4 +1,10 @@
 'use client';
+/**
+ * Password reset page that allows authenticated users to securely set a new password
+ * after accessing the reset link sent by email. Updates the user's credentials through
+ * Supabase Authentication, provides loading and error feedback, and redirects users
+ * to the login page after a successful password update.
+ */
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useRouter } from 'next/navigation';

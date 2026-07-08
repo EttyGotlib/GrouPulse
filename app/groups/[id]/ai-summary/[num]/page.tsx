@@ -1,4 +1,11 @@
 "use client";
+/**
+ * AI session summary page that analyzes documented meeting data and generates
+ * AI-powered insights for a specific group session. Retrieves session information,
+ * uses cached results when available, requests new analysis when needed, and
+ * presents group dynamics, cohesion metrics, participant highlights, and editable
+ * manual notes for the moderator.
+ */
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -7,13 +14,16 @@ export default function AiSummaryPage() {
   const router = useRouter();
   const { id, num } = useParams();
   
+  // מפתחות ל-LocalStorage
   const logStorageKey = `session_log_${id}_${num}`;
   const manualKey = `ai_manual_insights_${id}_${num}`;
   const groupDataKey = `group_data_${id}`;
 
 
+// State לשם הקבוצה כדי להציג אותו בכותרת
   const [groupName, setGroupName] = useState('');
 
+  // State לנתונים הדינמיים
   const [aiData, setAiData] = useState<any>(null);
   const [manualText, setManualText] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -23,12 +33,14 @@ export default function AiSummaryPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [fallbackActive, setFallbackActive] = useState(false);
 
+  // מניעת כפילות בקשות (Strict Mode Protection)
   const fetchedRef = useRef(false);
 
   useEffect(() => {
     setIsMounted(true);
     
     const fetchAiSummary = async () => {
+      //if (fetchedRef.current) return;
       if (!id || !num) return;
 
       setIsLoading(true);
@@ -38,16 +50,19 @@ export default function AiSummaryPage() {
           setHasData(false);
           setIsLoading(false);
           return;
-        }
+        }// הוספה
 
+        // --- 1. שליפת שם הקבוצה (תמיד קורה ראשון) ---
         const groupDataRaw = localStorage.getItem(groupDataKey);
         let currentGroupName = "קבוצה כללית";
         if (groupDataRaw) {
           const parsedGroup = JSON.parse(groupDataRaw);
           currentGroupName = parsedGroup.name || parsedGroup.title || currentGroupName;
         }
-        setGroupName(currentGroupName); 
+        setGroupName(currentGroupName); // עדכון ה-State לתצוגה בדף
+        // ------------------------------------------
        
+        // --- 2. בדיקת Cache ---
         const cacheKey = `ai_cache_${id}_${num}`;
         const cachedAiData = localStorage.getItem(cacheKey);
         
@@ -57,10 +72,11 @@ export default function AiSummaryPage() {
           if (parsedCache.sourceData === rawDataString) {
             setAiData(parsedCache.aiResult);
             setIsLoading(false);
-            return; 
+            return; // כאן הקוד עוצר אם יש Cache
           }
         }
 
+        // --- 🔥 מניעת spam (קריאות מהירות) ---
         const lastCallKey = `ai_last_call_${id}_${num}`;
         const lastCall = localStorage.getItem(lastCallKey);
 
@@ -122,14 +138,18 @@ export default function AiSummaryPage() {
       
         if (result.text) {
           try {
+            // 1. ניקוי תגיות Markdown במידה וה-AI הוסיף אותן
             const cleanJson = result.text.replace(/```json|```/g, "").trim();
             let parsedData: { insights: string[]; cohesionScore: number; dynamicsDescription: string; individualHighlights: any[]; };
 
             try {
+              // 2. ניסיון לפענח את ה-JSON
               parsedData = JSON.parse(cleanJson);
               
+              // 3. עדכון ה-State של הדף
               setAiData(parsedData);
 
+              // 4. שמירה ב-Cache עבור דף האנליטיקה (קורה רק אם ה-JSON תקין)
               const cacheToSave = {
                 sourceData: rawDataString,
                 aiResult: parsedData
@@ -137,6 +157,7 @@ export default function AiSummaryPage() {
               localStorage.setItem(`ai_cache_${id}_${num}`, JSON.stringify(cacheToSave));
               
             } catch (innerError) {
+              // מקרה שה-JSON לא תקין - יוצר נתוני Fallback זמניים
               console.error("JSON Parse Error, using fallback:", cleanJson);
               parsedData = {
                 insights: ["שגיאה בניתוח הנתונים מה-AI"],
@@ -145,6 +166,7 @@ export default function AiSummaryPage() {
                 individualHighlights: []
               };
               setAiData(parsedData);
+              // לא שומרים ב-Cache במקרה של שגיאה כדי שנוכל לנסות שוב בריענון
             }
 
           } catch (err) {
@@ -158,6 +180,7 @@ export default function AiSummaryPage() {
         setErrorMsg(error.message || "שגיאה בטעינת הנתונים");
         setFallbackActive(true);
         console.error("Error fetching AI data:", error);
+        // איפוס ה-Ref במקרה של שגיאה כדי לאפשר ניסיון חוזר ברענן
         fetchedRef.current = false; 
       } finally {
         setIsLoading(false);
@@ -176,7 +199,7 @@ export default function AiSummaryPage() {
 
   const handleGoBack = () => {
     if (isMounted) {
-      router.push(`/groups/${id}`);
+      router.push(`/groups/${id}`);// תיקון ניתוב חזרה לדף הקבוצה במקום לדשבורד
     }
   };
   
@@ -208,7 +231,7 @@ export default function AiSummaryPage() {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f] print:bg-white print:pb-0">
       
-      {}
+      {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 border-b border-slate-100 px-6 py-4 flex flex-row-reverse justify-between items-center print:hidden">
         <div className="flex items-center gap-3">
             <button onClick={handlePrint} className="bg-[#003643] text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 hover:bg-[#004d5f] transition-colors">
@@ -222,14 +245,14 @@ export default function AiSummaryPage() {
 
       <main className="max-w-2xl mx-auto px-6 pt-8 space-y-6 print:pt-0 print:max-w-full">
         
-        {}
+        {/* כותרת */}
         <div className="text-center md:text-right space-y-2 pt-4">
             <span className="text-[#32666d] text-xs font-bold uppercase tracking-widest print:text-black">ניתוח מערכת AI</span>
             <h2 className="text-3xl font-black text-[#003643] print:text-black">סיכום מפגש מבוסס AI</h2>
             <p className="text-slate-500 text-sm font-medium">קבוצה: {groupName} - מפגש {num}</p>
         </div>
 
-        {}
+        {/* כרטיסיית תובנות */}
         <section className="bg-white rounded-[32px] p-8 shadow-sm border border-slate-50 print:border-slate-200">
             <h3 className="font-bold text-[#003643] text-xl mb-6 print:text-black flex items-center gap-2">
               <span className="material-symbols-outlined print:hidden text-[#32666d]">lightbulb</span> תובנות מפתח
@@ -244,7 +267,7 @@ export default function AiSummaryPage() {
             </ul>
         </section>
 
-        {}
+        {/* דינמיקה קבוצתית */}
         <section className="bg-[#f1f4f8] rounded-[32px] p-8 border border-slate-100 print:bg-white print:border-slate-200">
             <h3 className="font-bold text-[#003643] text-xl mb-6 print:text-black flex items-center gap-2">
               <span className="material-symbols-outlined print:hidden text-[#32666d]">group</span> דינמיקה קבוצתית
@@ -262,7 +285,7 @@ export default function AiSummaryPage() {
             </div>
         </section>
 
-        {}
+        {/* דגשים פרטניים */}
         <section className="space-y-4">
             <h3 className="font-bold text-[#003643] text-xl px-1 print:text-black flex items-center gap-2">
               <span className="material-symbols-outlined print:hidden text-[#32666d]">person_search</span> דגשים פרטניים
@@ -279,7 +302,7 @@ export default function AiSummaryPage() {
             </div>
         </section>
 
-        {}
+        {/* תובנות ידניות */}
         <section className={`space-y-3 ${!manualText && !isEditing && 'print:hidden'}`}>
             <h3 className="font-bold text-[#32666d] text-sm px-1 flex items-center gap-2 print:hidden">
               <span className="material-symbols-outlined">edit_note</span> הערות ותובנות ידניות

@@ -1,4 +1,10 @@
 "use client";
+/**
+ * Session preparation page that provides moderators with AI-assisted guidance before
+ * a group meeting. Retrieves group details and participant information, generates
+ * personalized preparation insights, and presents recommendations to help moderators
+ * plan and conduct the upcoming session effectively.
+ */
 
 import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -8,10 +14,13 @@ export default function PreparationPage() {
   const router = useRouter();
   const { id, num } = useParams();
 
+  // State לשמירת שם הקבוצה
   const [groupName, setGroupName] = useState('');
 
+  // משתתפים מהקבוצה
   const [participants, setParticipants] = useState<any[]>([]);
 
+  // AI State
   const [aiPreparation, setAiPreparation] = useState<any>(null);
   const [isLoadingAi, setIsLoadingAi] = useState(true);
   const [aiError, setAiError] = useState('');
@@ -21,12 +30,13 @@ export default function PreparationPage() {
       if (!id) return;
 
       try {
+        // שימוש בפונקציה הקיימת שלך לשליפת פרטי קבוצה
         const result = await getGroupDetails(id);
 
         if (result.success && result.group) {
           setGroupName(result.group.name);
 
-
+          // שליפת משתתפים מהקבוצה
           if (result.group.participants) {
             setParticipants(result.group.participants);
           }
@@ -42,7 +52,7 @@ export default function PreparationPage() {
     fetchGroupName();
   }, [id]);
 
-
+  // AI Preparation Analysis
   useEffect(() => {
     const fetchAiPreparation = async () => {
       if (!id || !num || !groupName) return;
@@ -50,7 +60,7 @@ export default function PreparationPage() {
       setIsLoadingAi(true);
 
       try {
-
+        // איסוף מידע ממפגשים קודמים
         const previousSessionsData: any[] = [];
 
         for (let i = 1; i < Number(num); i++) {
@@ -137,7 +147,7 @@ export default function PreparationPage() {
 
           setAiPreparation(parsed);
 
-
+          // שמירת cache
           localStorage.setItem(
             `preparation_cache_${id}_${num}`,
             JSON.stringify(parsed)
@@ -146,7 +156,7 @@ export default function PreparationPage() {
       } catch (error) {
         console.error("AI Preparation Error:", error);
 
-
+        // Fallback Data
         setAiPreparation({
           sessionFocus: "חיזוק תחושת הביטחון והשייכות בקבוצה",
 
@@ -206,7 +216,7 @@ export default function PreparationPage() {
   return (
     <div dir="rtl" className="bg-[#f7f9fe] min-h-screen pb-32 font-sans text-[#181c1f]">
 
-      {}
+      {/* Header */}
       <header className="bg-white/80 backdrop-blur-xl sticky top-0 z-50 flex flex-row-reverse justify-between items-center w-full px-6 h-16 border-b border-slate-100">
         <h1 className="font-bold text-lg text-[#003643]">הכנה למפגש</h1>
 
@@ -220,7 +230,7 @@ export default function PreparationPage() {
 
       <main className="max-w-2xl mx-auto px-6 pt-6 flex flex-col gap-8">
 
-        {}
+        {/* AI Loading */}
         {isLoadingAi && (
           <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-4">
             <div className="w-8 h-8 border-4 border-[#b7ecf3] border-t-[#003643] rounded-full animate-spin"></div>
@@ -228,14 +238,14 @@ export default function PreparationPage() {
           </div>
         )}
 
-        {}
+        {/* AI Error */}
         {aiError && (
           <div className="bg-[#fff7ed] border border-orange-200 text-orange-700 p-4 rounded-2xl text-sm font-medium">
             {aiError}
           </div>
         )}
 
-        {}
+        {/* AI Focus */}
         {!isLoadingAi && aiPreparation && (
           <section className="bg-[#003643] text-white p-6 rounded-3xl shadow-lg">
             <div className="flex items-center gap-2 mb-3">
@@ -249,7 +259,7 @@ export default function PreparationPage() {
           </section>
         )}
 
-        {}
+        {/* Section 1: Session Info */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="md:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-50">
             <label className="text-slate-400 text-[11px] font-bold block mb-1 uppercase tracking-wider">
@@ -282,7 +292,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Section 2: Goals */}
         <section className="bg-[#f1f4f8] p-6 rounded-3xl border border-slate-100">
           <div className="flex items-center gap-2 mb-4 border-r-4 border-[#32666d] pr-3">
             <h3 className="text-lg font-bold text-[#003643]">מטרות המפגש</h3>
@@ -312,7 +322,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Section 3: Interventions */}
         <section className="flex flex-col gap-4">
           <h3 className="text-lg font-bold text-[#003643] px-1">
             תכנון התערבויות
@@ -345,7 +355,7 @@ export default function PreparationPage() {
           ))}
         </section>
 
-        {}
+        {/* Section 4: Equipment */}
         <section className="bg-[#e5e8ed] p-6 rounded-3xl">
           <h3 className="text-lg font-bold text-[#003643] mb-4 px-1">
             ציוד ועזרים
@@ -372,7 +382,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* AI Tips */}
         <section className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
           <div className="flex items-center gap-2 mb-5">
             <span className="material-symbols-outlined text-[#32666d]">
@@ -396,7 +406,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* AI Risk Points */}
         <section className="bg-[#fff7ed] p-6 rounded-3xl border border-orange-100">
           <div className="flex items-center gap-2 mb-5">
             <span className="material-symbols-outlined text-orange-500">
@@ -420,7 +430,7 @@ export default function PreparationPage() {
           </div>
         </section>
 
-        {}
+        {/* Section 5: Reminders */}
         <section className="mb-10">
           <div className="flex justify-between items-center mb-4 px-1">
             <h3 className="text-lg font-bold text-[#003643]">
