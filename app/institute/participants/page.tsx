@@ -1,5 +1,17 @@
 'use client';
-
+/**
+ * ParticipantsPage Component
+ *
+ * Displays an institutional registry of participants.
+ * Fetches participant data from backend and renders a structured table.
+ *
+ * Features:
+ * - Load participants list on mount
+ * - Handle loading and empty states
+ * - Display name, group, ID, and email
+ * - Clickable participant name linking to profile page
+ * - Clean tabular layout for institutional overview
+ */
 import { useState, useEffect } from 'react';
 import { UserCheck } from 'lucide-react';
 import { getRealInstituteParticipants } from '../../../lib/api';

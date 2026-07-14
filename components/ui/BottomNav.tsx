@@ -21,7 +21,6 @@ export default function BottomNav() {
 
   return (
     <>
-      {/* התיקון הסופי: הזרקת CSS שדואג להעלים את הסרגל בזמן הדפסה בלבד */}
       <style>{`
         @media print {
           .force-hide-on-print {
@@ -68,7 +67,6 @@ export default function BottomNav() {
           onClick={() => router.push('/calendar')} 
         />
         
-        {/* כפתור "הקבוצות שלי" מאוחד - מפנה לדף החדש ודלוק בכל המקרים שביקשת */}
         <NavItem 
           icon="group" 
           label="הקבוצות שלי" 

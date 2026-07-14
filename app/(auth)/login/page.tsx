@@ -1,5 +1,9 @@
 'use client';
-
+/**
+ * Login page component that authenticates users with Supabase using email and password.
+ * Handles role-based navigation, password reset requests, loading states,
+ * and displays authentication success or error messages.
+ */
 import { useState } from 'react';
 import { supabase } from '../../../lib/supabase';
 import { useRouter } from 'next/navigation';
@@ -13,55 +17,43 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // התחברות עם אימייל וסיסמה ובדיקת תפקיד
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg(null);
     setSuccessMsg(null);
 
-    // 1. התחברות ל-Supabase Auth
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
     if (error) {
       setErrorMsg('פרטי ההתחברות אינם נכונים');
       setLoading(false);
       return;
     }
-
-    // 2. אם ההתחברות הצליחה, בודקים את התפקיד בטבלת Profiles
     if (data?.user) {
       try {
-        // שינוי ל-maybeSingle כדי למנוע את קריסת ה-JSON במקרה שהשורה לא נמצאה
         const { data: profile, error: profileError } = await supabase
           .from('Profiles')
           .select('role')
           .eq('id', data.user.id)
           .maybeSingle();
-
         if (profileError) throw profileError;
-
-        // 3. ניתוב חכם לפי סוג המשתמש (בודק את שני הווריאציות של המוסד ליתר ביטחון)
         if (profile && (profile.role === 'institution' || profile.role === 'institute')) {
           router.push('/institute');
         } else {
-          router.push('/dashboard'); // למנחים (moderator)
-        }
-        
+          router.push('/dashboard'); 
+        }        
         router.refresh();
       } catch (err: any) {
         console.error('Error fetching profile:', err.message);
-        // במקרה של שגיאה בשליפת הפרופיל, ננתב כברירת מחדל לדאשבורד הרגיל
         router.push('/dashboard');
         router.refresh();
       }
     }
   };
 
-  // פונקציה לשליחת מייל שחזור סיסמה
   const handleForgotPassword = async () => {
     if (!email) {
       setErrorMsg('אנא הזינו אימייל כדי לקבל קישור לאיפוס סיסמה');
@@ -75,7 +67,6 @@ export default function LoginPage() {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
     });
-
     if (error) {
       setErrorMsg('שגיאה בשליחת מייל השחזור: ' + error.message);
     } else {
@@ -95,7 +86,6 @@ export default function LoginPage() {
       <main className="flex-grow flex items-center justify-center w-full px-4 py-12">
         <div className="max-w-4xl w-full flex flex-col md:flex-row-reverse bg-[#f1f4f8] rounded-[2rem] overflow-hidden shadow-sm">
           
-          {/* צד הטופס */}
           <div className="w-full md:w-1/2 p-8 md:p-12 flex flex-col justify-center bg-white">
             <div className="mb-10 text-right">
               <h1 className="text-[2.5rem] font-extrabold text-[#003643] mb-2 leading-tight">התחברות</h1>
@@ -147,7 +137,6 @@ export default function LoginPage() {
                 {loading ? 'מתחבר...' : 'התחברות'}
               </button>
 
-              {/* קישור להרשמה שהוחזר */}
               <p className="text-center text-sm text-gray-600">
                 אין לך חשבון?{' '}
                 <Link href="/register" className="text-[#32666d] font-bold hover:underline">
@@ -157,7 +146,6 @@ export default function LoginPage() {
             </form>
           </div>
 
-          {/* צד המותג */}
           <div className="hidden md:flex w-1/2 bg-[#003643] items-center justify-center p-12 text-right">
             <div>
               <h2 className="text-3xl font-extrabold text-white leading-snug">המרחב הבטוח שלך לניהול טיפולים קבוצתיים</h2>

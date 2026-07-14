@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
-// ייבוא פונקציית ה-API שלכן (עדכני את הנתיב לקובץ ה-API במידת הצורך)
 import { getParticipantProgress } from '../../../lib/api'; 
 
 export default function ParticipantProfilePage() {
@@ -11,7 +10,6 @@ export default function ParticipantProfilePage() {
   const searchParams = useSearchParams();
   const isInstituteView = searchParams.get('viewAs') === 'institute';
 
-  // מזהה המשתתף מגיע מה-URL: /participants/[id]
   const participantId = params.id;
 
   // States
@@ -37,48 +35,30 @@ export default function ParticipantProfilePage() {
 
       try {
         setLoading(true);
-
-        // -------------------------------------------------------------
-        // שליפת נתוני המשתתף והתיעודים ישירות מ-Supabase
-        // -------------------------------------------------------------
         const res = await getParticipantProgress(participantId);
-
         if (!res.success || !res.data) {
           throw new Error(res.error || 'נכשלה שליפת נתוני המשתתף מ-Supabase');
         }
-
         const dbRecords = res.data;
-
-        // 1. שליפת שם המשתתף מתוך התיעוד הראשון (באמצעות ה-Join שביצעתן)
         if (dbRecords.length > 0 && dbRecords[0].Participants) {
           setParticipantName(dbRecords[0].Participants.name_or_code);
         } else {
           setParticipantName(`משתתף #${participantId}`);
         }
-
-        // 2. מיפוי הנתונים מתוך טבלת Individual_Notes למבנה הנדרש בגרף ובכרטיסיות
         const participantRecords = dbRecords.map((record: any) => ({
           session_id: record.session_id,
           created_at: record.created_at,
-          attendance: true, // בגלל שזה מגיע מטבלת individual_notes, הוא היה נוכח
+          attendance: true, 
           participation_score: record.participation_score || 0,
-          engagement_score: record.participation_score || 0, // שימוש בציון הקיים
+          engagement_score: record.participation_score || 0,
           content: record.content || '',
         }));
 
         setProgressData(participantRecords);
-
-        // -------------------------------------------------------------
-        // חישובים עבור ה-Prompt של ה-AI
-        // -------------------------------------------------------------
         const totalSessions = participantRecords.length;
         const avgParticipation = totalSessions > 0
           ? (participantRecords.reduce((acc, curr) => acc + (curr.participation_score || 0), 0) / totalSessions).toFixed(1)
           : '0';
-
-        // -------------------------------------------------------------
-        // בדיקת ה-Cache של ה-AI (נשמר לפי ה-ID של המשתתף)
-        // -------------------------------------------------------------
         const aiCacheKey = `participant_ai_${participantId}`;
         const cachedAi = localStorage.getItem(aiCacheKey);
         if (cachedAi) {
@@ -87,19 +67,12 @@ export default function ParticipantProfilePage() {
           return;
         }
 
-        // אם אין תיעודים בכלל, אין טעם לפנות ל-AI
         if (totalSessions === 0) {
           setLoading(false);
           return;
         }
-
-        // טיימאאוט ל-AI
         const controller = new AbortController();
         const timeout = setTimeout(() => controller.abort(), 30000);
-
-        // -------------------------------------------------------------
-        // פנייה ל-AI שלכן לקבלת הניתוח המורחב
-        // -------------------------------------------------------------
         const response = await fetch('/api/gen-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -145,8 +118,6 @@ export default function ParticipantProfilePage() {
 
         const parsedAnalysis = JSON.parse(cleanJson);
         setAnalysis(parsedAnalysis);
-
-        // שמירה ב-Cache כדי לא לבזבז קריאות AI ברענון הבא
         localStorage.setItem(aiCacheKey, JSON.stringify(parsedAnalysis));
       } catch (error: any) {
         console.error(error);
@@ -160,8 +131,6 @@ export default function ParticipantProfilePage() {
 
     fetchParticipantData();
   }, [participantId]);
-
-  // ממוצע השתתפות לחישוב בזמן אמת ב-UI
   const avgParticipation = progressData.length > 0 
     ? (progressData.reduce((acc: number, curr: any) => acc + (curr.participation_score || 0), 0) / progressData.length).toFixed(1) 
     : "0";
@@ -169,7 +138,6 @@ export default function ParticipantProfilePage() {
   if (loading) {
     return <div style={{ textAlign: 'center', padding: '50px', direction: 'rtl' }}>טוען נתונים מ-Supabase...</div>;
   }
-
   if (fallbackActive) {
     return (
       <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', direction: 'rtl', fontFamily: 'Inter, sans-serif' }}>
@@ -186,9 +154,9 @@ export default function ParticipantProfilePage() {
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 40px', backgroundColor: 'white', borderBottom: '1px solid #eee' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#eee', overflow: 'hidden' }}>
-            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${participantId}`} alt="avatar" />
-          </div>
+        <div style={{ width: '40px', height: '40px', borderRadius: '50%', backgroundColor: '#e2f8fc', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#003643', fontWeight: 'bold', fontSize: '16px' }}>
+           {participantName ? participantName.charAt(0).toUpperCase() : '?'}
+           </div>
           <span style={{ fontWeight: 'bold', color: '#003643', fontSize: '18px' }}>Participant Insight</span>
         </div>
         <span className="material-symbols-outlined" style={{ color: '#003643', cursor: 'pointer' }} onClick={() => router.back()}>arrow_forward</span>
@@ -271,31 +239,21 @@ export default function ParticipantProfilePage() {
                   <path
                     d={(() => {
                       const widthBetweenPoints = 500 / (progressData.length - 1);
-                      
-                      // 1. קודם כל נחשב את כל נקודות ה-X וה-Y האמיתיות מימין לשמאל
                       const points = progressData.map((r, i) => {
                         const x = 500 - (i * widthBetweenPoints);
                         const y = 140 - ((r.participation_score - 1) / 4) * 110;
                         return { x, y };
                       });
-
-                      // 2. נבנה את ה-Path בעזרת קימור Bezier חלק
-                      let d = `M ${points[0].x} ${points[0].y}`;
-                      
+                      let d = `M ${points[0].x} ${points[0].y}`;                      
                       for (let i = 0; i < points.length - 1; i++) {
                         const p0 = points[i];
                         const p1 = points[i + 1];
-                        
-                        // קביעת נקודות האחיזה (Control Points) באמצע הדרך בציר ה-X
-                        // כדי ליצור החלקה (Smooth transition) בין העליות והירידות
                         const cpX1 = p0.x - (widthBetweenPoints / 2);
                         const cpY1 = p0.y;
                         const cpX2 = p0.x - (widthBetweenPoints / 2);
-                        const cpY2 = p1.y;
-                        
+                        const cpY2 = p1.y;                       
                         d += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${p1.x} ${p1.y}`;
-                      }
-                      
+                      }                      
                       return d;
                     })()}
                     fill="none"
@@ -320,7 +278,6 @@ export default function ParticipantProfilePage() {
 
                   return (
                     <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flex: 1 }}>
-                      {/* הנקודה שעל הציר */}
                       <div style={{ 
                         width: isLast ? '8px' : '4px', 
                         height: isLast ? '8px' : '4px', 
@@ -330,7 +287,6 @@ export default function ParticipantProfilePage() {
                         marginBottom: '8px'
                       }}></div>
                       
-                      {/* הטקסט של המפגש */}
                       <span style={{ fontSize: '11px', color: isLast ? '#003643' : '#94a3b8', fontWeight: isLast ? 'bold' : 'normal', height: '15px', whiteSpace: 'nowrap' }}>
                         {(isFirst || isMiddle || isLast) ? `מפגש ${r.session_id}` : ''}
                       </span>

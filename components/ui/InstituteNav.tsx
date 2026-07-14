@@ -8,13 +8,11 @@ export default function InstituteNav() {
   const router = useRouter();
   const pathname = usePathname();
 
-  // מערך הטאבים המדויק של המוסד
   const navItems = [
     { label: 'לוח בקרה', path: '/institute', icon: LayoutDashboard },
     { label: 'צוות המנחים', path: '/institute/moderators', icon: Users },
     { label: 'ניהול קבוצות', path: '/institute/groups', icon: Layers },
     { label: 'מאגר מטופלים', path: '/institute/participants', icon: UserCheck },
-    // מוביל לדף האנליטיקה הכללי עם סימון שהמשתמש הוא מוסד
     { label: 'אנליטיקות', path: '/analytics?userType=institute', icon: BarChart3 },
     { label: 'הגדרות מוסד', path: '/settings?userType=institute', icon: Settings },
   ];
@@ -25,10 +23,7 @@ export default function InstituteNav() {
         
         {navItems.map((item) => {
           const Icon = item.icon;
-          
-          // בדיקה האם הטאב פעיל (מתחשב גם בפרמטרים של ה-URL באנליטיקות)
           const isActive = pathname === item.path || (item.path.startsWith('/analytics') && pathname === '/analytics');
-
           return (
             <button
               key={item.path}

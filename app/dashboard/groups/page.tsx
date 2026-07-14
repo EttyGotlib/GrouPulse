@@ -1,5 +1,10 @@
 'use client';
-
+/**
+ * Groups page that displays all groups assigned to the current moderator.
+ * Retrieves group data from the dashboard API, presents each group as an
+ * interactive card with participant information, and provides navigation
+ * to group details or the group creation page.
+ */
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getDashboardData } from '../../../lib/api';
@@ -26,8 +31,6 @@ export default function GroupsPage() {
   return (
     <div style={{ backgroundColor: '#f7f9fe', minHeight: '100vh', direction: 'rtl', fontFamily: 'Inter, sans-serif', padding: '40px 20px 140px' }}>
       <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
-        
-        {/* כותרת וכפתור הוספה */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
           <h1 style={{ fontSize: '32px', fontWeight: '800', color: '#003643', margin: 0 }}>הקבוצות שלי</h1>
           <button 
@@ -38,7 +41,6 @@ export default function GroupsPage() {
           </button>
         </div>
 
-        {/* רשימת הקבוצות */}
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
@@ -65,7 +67,6 @@ export default function GroupsPage() {
   );
 }
 
-// קומפוננטת הכרטיסייה (הועברה לכאן)
 function GroupCard({ title, participants, onClick }: any) {
   return (
     <div 

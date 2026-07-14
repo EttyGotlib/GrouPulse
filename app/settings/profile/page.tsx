@@ -1,27 +1,37 @@
 "use client";
-
+/**
+ * ProfileSettingsPage Component
+ *
+ * Renders the user profile modification form, enabling individuals to update their account credentials.
+ * Handles specialized data inputs while securely integrating backend persistence triggers.
+ *
+ * Features:
+ * - Syncs existing user information from Supabase auth metadata tables on load
+ * - Provides dynamic managed form fields for full name and professional title properties
+ * - Implements a strict read-only text state context for primary account identifiers (email addresses)
+ * - Fires remote API change synchronization tasks alongside interactive system saving state triggers
+ * - Conditionally patches active interface wrapper views and mounts dedicated corporate dashboard navigation elements
+ *
+ * Enclosed within a native React Suspense boundary to optimize client-side view parsing during parameter evaluation.
+ */
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import InstituteNav from '../../../components/ui/InstituteNav'; // ודאי שהנתיב מתאים לעץ התיקיות שלך
-// ודאי שהנתיב ל-API נכון לפי מבנה התיקיות שלך
+import InstituteNav from '../../../components/ui/InstituteNav'; 
 import { getCurrentUserInfo, updateUserInfo } from '../../../lib/api'; 
 
 function ProfileSettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const userType = searchParams.get('userType'); // חילוץ ה-userType מה-URL
+  const userType = searchParams.get('userType'); 
   const isInstitute = userType === 'institute';
-
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-
   const [formData, setFormData] = useState({
     fullName: "",
     title: "",
     email: ""
   });
 
-  // טעינת נתונים אמיתיים בכניסה לדף
   useEffect(() => {
     async function loadData() {
       const result = await getCurrentUserInfo();
@@ -48,7 +58,6 @@ function ProfileSettingsContent() {
     
     if (result.success) {
       alert('הפרטים עודכנו בהצלחה!');
-      // חזרה לדף ההגדרות הראשי תוך שמירה על הסטטוס של המוסד במידה והוא מוסד
       router.push(`/settings${isInstitute ? '?userType=institute' : ''}`);
     } else {
       alert('שגיאה בעדכון הפרטים: ' + result.error);
@@ -78,7 +87,6 @@ function ProfileSettingsContent() {
         </div>
 
         <div className="space-y-6">
-          {/* שם מלא */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-black text-slate-400 pr-2 uppercase">שם מלא</label>
             <input 
@@ -90,7 +98,6 @@ function ProfileSettingsContent() {
             />
           </div>
 
-          {/* תואר מקצועי */}
           <div className="flex flex-col gap-2">
             <label className="text-xs font-black text-slate-400 pr-2 uppercase">תואר מקצועי</label>
             <input 
@@ -102,7 +109,6 @@ function ProfileSettingsContent() {
             />
           </div>
 
-          {/* אימייל - לקריאה בלבד בדרך כלל ב-Supabase Auth ללא תהליך אימות נוסף */}
           <div className="flex flex-col gap-2 opacity-60">
             <label className="text-xs font-black text-slate-400 pr-2 uppercase">אימייל </label>
             <input 
@@ -124,7 +130,6 @@ function ProfileSettingsContent() {
         </button>
       </main>
 
-      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הכללי במידה והיוזר הוא מוסד */}
       {isInstitute && (
         <>
           <style dangerouslySetInnerHTML={{ __html: `
@@ -142,7 +147,6 @@ function ProfileSettingsContent() {
   );
 }
 
-// ייצוא העמוד עטוף ב-Suspense כדי למנוע קריסה של useSearchParams ב-Next.js
 export default function ProfileSettingsPage() {
   return (
     <Suspense fallback={<div className="p-20 text-center font-bold text-[#003643]">טוען הגדרות פרופיל...</div>}>

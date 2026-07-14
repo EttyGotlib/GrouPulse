@@ -1,5 +1,16 @@
 'use client';
-
+/**
+ * ModeratorsPage Component
+ *
+ * Displays a list of institute moderators.
+ * Fetches data from the backend and renders a simple table view.
+ *
+ * Features:
+ * - Load moderators list from API on mount
+ * - Handle loading and empty states
+ * - Display name, email, and role per moderator
+ * - Clean table layout with basic styling
+ */
 import { useState, useEffect } from 'react';
 import { Users } from 'lucide-react';
 import { getModeratorsByInstitute } from '../../../lib/api';

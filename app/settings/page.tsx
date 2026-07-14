@@ -1,18 +1,29 @@
 "use client";
-
+/**
+ * SettingsPage Component
+ *
+ * Displays the main system settings interface.
+ * Adapts features and navigation depending on whether the connected user is a moderator or an institution.
+ *
+ * Features:
+ * - Fetches current user profile metadata on component mount
+ * - Dynamic route handling and navigation tracking via search parameters (userType)
+ * - Custom structured list item triggers for profiles, security settings, and interface themes
+ * - Integrates user logout session clearance operations
+ * - Conditionally injects specific style blocks and specific institution navigation panels
+ *
+ * Wrapped in React Suspense to safely handle lookups on synchronous client search components.
+ */
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import InstituteNav from '../../components/ui/InstituteNav';
-// הוספת signOut לייבוא הקיים
 import { getCurrentUserInfo, signOut } from '../../lib/api'; 
 
 function SettingsContent() {
   const router = useRouter();
-  // חילוץ הפרמטרים מה-URL
   const searchParams = useSearchParams();
   const userType = searchParams.get('userType');
   
-  // State לפרטי המשתמש
   const [userData, setUserData] = useState({
     fullName: "טוען...",
     role: "מנחה קבוצות",
@@ -34,19 +45,15 @@ function SettingsContent() {
     loadUserInfo();
   }, []);
 
-  // פונקציה לביצוע התנתקות
   const handleLogout = async () => {
-    // ביצוע הניתוק ב-Supabase
     const result = await signOut();
     if (result.success) {
-      // העברה לדף ההתחברות שנמצא בנתיב /login
       router.push('/login');
     } else {
       alert("שגיאה בתהליך היציאה: " + result.error);
     }
   };
 
-  // פונקציה ליצירת שורת הגדרות מעוצבת
   const SettingItem = ({ icon, title, subtitle, color = "text-slate-400" }: any) => (
     <div className="flex flex-row-reverse items-center justify-between p-5 bg-white rounded-2xl mb-3 shadow-sm border border-slate-50 active:scale-[0.98] transition-all cursor-pointer group">
       <div className="flex flex-row-reverse items-center gap-4">
@@ -74,7 +81,6 @@ function SettingsContent() {
 
       <main className="max-w-2xl mx-auto px-6 pt-8 flex flex-col gap-8">
         
-        {/* פרופיל משתמש */}
         <section className="text-center mb-4">
           <div className="relative inline-block">
             <div className="w-24 h-24 rounded-full bg-[#003643] border-4 border-white shadow-xl mx-auto flex items-center justify-center text-white text-3xl font-bold">
@@ -88,7 +94,6 @@ function SettingsContent() {
           <p className="text-xs text-slate-400 font-bold">{userData.role}</p>
         </section>
 
-        {/* קטגוריה: חשבון */}
         <section>
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">חשבון ופרופיל</h3>
           <div onClick={() => router.push(`/settings/profile${userType === 'institute' ? '?userType=institute' : ''}`)}>
@@ -100,7 +105,6 @@ function SettingsContent() {
           <SettingItem icon="notifications" title="התראות" subtitle="ניהול תזכורות למפגשים ויומנים" />
         </section>
 
-        {/* קטגוריה: אפליקציה */}
         <section>
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">העדפות אפליקציה</h3>
           <div onClick={() => router.push(`/settings/display${userType === 'institute' ? '?userType=institute' : ''}`)}>
@@ -110,13 +114,11 @@ function SettingsContent() {
           <SettingItem icon="translate" title="שפה" subtitle="עברית (ברירת מחדל)" />
         </section>
 
-        {/* קטגוריה: עזרה */}
         <section>
           <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">תמיכה</h3>
           <SettingItem icon="help" title="מרכז עזרה" />
           <SettingItem icon="info" title="אודות המערכת" subtitle="גרסה 1.0.4" />
           
-          {/* כפתור היציאה המחובר לפונקציה */}
           <button 
             onClick={handleLogout}
             className="w-full flex flex-row-reverse items-center justify-center gap-2 p-5 text-rose-500 font-bold text-sm bg-rose-50 rounded-2xl mt-4 active:scale-95 transition-all"
@@ -127,8 +129,6 @@ function SettingsContent() {
         </section>
 
       </main>
-
-      {/* הזרקת סרגל המוסד והסתרת סרגל המנחה הכללי בצורה חסינה במידה והיוזר הוא מוסד */}
       {userType === 'institute' && (
         <>
           <style dangerouslySetInnerHTML={{ __html: `
@@ -146,7 +146,6 @@ function SettingsContent() {
   );
 }
 
-// ייצוא העמוד הראשי עטוף ב-Suspense כדי למנוע קריסה בזמן קריאת הכתובת ב-Next.js
 export default function SettingsPage() {
   return (
     <Suspense fallback={<div className="p-20 text-center font-bold text-[#003643]">טוען הגדרות...</div>}>
